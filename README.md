@@ -1,6 +1,6 @@
 # BTC Crowdfund Analytics
 
-MVP for Bitcoin crowdfunding analytics. Displays dashboard analytics from BTCPay Server invoices with Angor project support and demo fallback.
+In process of building MVP for Bitcoin crowdfunding analytics. Displays dashboard analytics from BTCPay Server and pulls data on all projects that have been funded via ango invoices with Angor
 
 ## Features
 
@@ -188,7 +188,7 @@ The test suite includes:
 - ✅ Daily bucketing for time-series
 - ✅ BTCPay API header construction
 
-## 🔗 API Endpoints
+## API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -199,7 +199,7 @@ The test suite includes:
 | `/webhook` | POST | BTCPay webhook receiver |
 | `/health` | GET | Health check (returns JSON) |
 
-## 🎬 Three-Minute Demo Script
+## Three-Minute Demo Script
 
 ### 1. Show Settings (30 seconds)
 
@@ -243,7 +243,7 @@ The test suite includes:
 3. Return to the dashboard - show the new entry in logs
 4. Refresh dashboard to see the KPI and charts update
 
-## 🧩 Testing Webhooks Manually
+## Testing Webhooks Manually
 
 Simulate a webhook delivery with curl:
 
@@ -264,7 +264,7 @@ curl -X POST http://localhost:8000/webhook \
 
 You should see the webhook logged in `/logs` with "✓ Verified" status.
 
-## 🛠️ Makefile Commands
+## Makefile Commands
 
 ```bash
 make install    # Create venv and install dependencies
@@ -274,7 +274,7 @@ make seed       # Seed demo data
 make clean      # Remove venv and database
 ```
 
-## 🌐 Angor Integration
+## Angor Integration
 
 If you enable Angor support (`ANGOR_ENABLE=true` in `.env`), you can toggle to view Angor crowdfunding projects.
 
@@ -284,7 +284,7 @@ The adapter uses a three-tier strategy:
 2. **Angor Hub API**: Attempts to fetch from `hub.angor.io` (optional)
 3. **Fallback**: Returns demo data if API unavailable
 
-## 🚦 Architecture Notes
+## Architecture Notes
 
 ### Demo Mode
 
@@ -329,7 +329,7 @@ When `BTCPAY_HOST` or `BTCPAY_STORE_ID` are not configured, the app runs in demo
 - **Input Validation**: FastAPI handles request validation
 - **SQL Injection**: SQLModel ORM prevents SQL injection
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Import errors when running
 
@@ -356,7 +356,7 @@ Only one process should access the SQLite database at a time. Stop any running i
 2. Ensure Chart.js CDN is accessible
 3. Verify data is being passed to templates correctly
 
-## 📝 Future Enhancements
+## Future Enhancements
 
 - [ ] Add user authentication
 - [ ] Support multiple BTCPay stores
@@ -368,11 +368,11 @@ Only one process should access the SQLite database at a time. Stop any running i
 - [ ] Docker containerization
 - [ ] PostgreSQL support for production
 
-## 📄 License
+## License
 
 MIT License - feel free to use for your weekend hackathon!
 
-## 🤝 Contributing
+## Contributing
 
 This is a weekend MVP built for clarity and speed. Contributions welcome!
 
@@ -381,7 +381,7 @@ This is a weekend MVP built for clarity and speed. Contributions welcome!
 3. Add tests for new functionality
 4. Submit a pull request
 
-## 📚 References
+## References
 
 - [BTCPay Server Greenfield API](https://docs.btcpayserver.org/API/Greenfield/v1/)
 - [BTCPay Server Webhooks](https://docs.btcpayserver.org/Zapier/)
@@ -389,7 +389,7 @@ This is a weekend MVP built for clarity and speed. Contributions welcome!
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [Chart.js Documentation](https://www.chartjs.org/)
 
-## 📋 Project Documentation
+## Project Documentation
 
 For detailed technical information and integration guidance:
 
