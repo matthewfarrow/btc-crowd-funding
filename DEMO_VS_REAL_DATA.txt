@@ -1,0 +1,223 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                                                                    ║
+║           DEMO MODE vs REAL DATA - HOW IT WORKS                   ║
+║                                                                    ║
+╚════════════════════════════════════════════════════════════════════╝
+
+
+CURRENT SITUATION (Demo Mode):
+═══════════════════════════════════════════════════════════════════════
+
+    ┌─────────────────────┐
+    │   Your App          │
+    │   (FastAPI)         │
+    │                     │
+    │  📊 Dashboard       │◄─── Shows FAKE data
+    │  💾 SQLite DB       │◄─── Contains 30 synthetic invoices
+    │                     │
+    └─────────────────────┘
+              ▲
+              │
+              │ Reads from
+              │
+    ┌─────────────────────┐
+    │  seed_demo.py       │──── Generated fake invoices
+    │  (Demo Data)        │     (not real transactions)
+    └─────────────────────┘
+
+    ⚠️  Problem: No connection to real Bitcoin payments
+    ⚠️  All data is synthetic and for testing only
+
+
+AFTER CONNECTING BTCPAY (Real Data):
+═══════════════════════════════════════════════════════════════════════
+
+    ┌──────────────────────────────┐
+    │  BTCPay Server               │
+    │  (Your Bitcoin Gateway)      │
+    │                              │
+    │  🏪 Your Store               │
+    │  💰 Real BTC Invoices        │
+    │  💳 Payment Processing       │
+    │  🪝 Webhooks                 │
+    └──────────────┬───────────────┘
+                   │
+                   │ API Calls (HTTPS)
+                   │ Webhooks (Real-time)
+                   │
+                   ▼
+    ┌──────────────────────────────┐
+    │   Your App (FastAPI)         │
+    │                              │
+    │  🔑 .env file configured     │◄─── API Key + Store ID
+    │  📊 Dashboard                │◄─── Shows REAL invoices
+    │  💾 SQLite DB (cache)        │◄─── Stores real data locally
+    │  🔄 Refresh Data button      │◄─── Fetches latest from BTCPay
+    │  🪝 Webhook endpoint         │◄─── Receives real-time updates
+    └──────────────────────────────┘
+
+
+WHAT YOU NEED TO CONNECT:
+═══════════════════════════════════════════════════════════════════════
+
+    ┌─────────────────────────────────────────────────────────────┐
+    │                                                             │
+    │  .env file with 4 values:                                   │
+    │  ═══════════════════════════                                │
+    │                                                             │
+    │  1. BTCPAY_HOST                                             │
+    │     └─→ Your BTCPay server domain                           │
+    │         Example: mybtcpay.com                               │
+    │                                                             │
+    │  2. BTCPAY_API_KEY                                          │
+    │     └─→ API key with store permissions                      │
+    │         Create in: Account → API Keys                       │
+    │                                                             │
+    │  3. BTCPAY_STORE_ID                                         │
+    │     └─→ Your store's unique ID                              │
+    │         Find in: Store URL or Settings                      │
+    │                                                             │
+    │  4. BTCPAY_WEBHOOK_SECRET                                   │
+    │     └─→ Secret string for webhook verification              │
+    │         Create any random string                            │
+    │                                                             │
+    └─────────────────────────────────────────────────────────────┘
+
+
+DATA FLOW WITH BTCPAY CONNECTED:
+═══════════════════════════════════════════════════════════════════════
+
+    Customer makes payment
+          │
+          ▼
+    ┌────────────────┐
+    │  BTCPay Server │
+    │  processes     │
+    │  Bitcoin       │
+    │  payment       │
+    └────────┬───────┘
+             │
+             ├──────────────┐
+             │              │
+             ▼              ▼
+    ┌─────────────┐   ┌──────────────┐
+    │  Webhook    │   │  API Poll    │
+    │  (instant)  │   │  (on refresh)│
+    └──────┬──────┘   └──────┬───────┘
+           │                 │
+           │                 │
+           ▼                 ▼
+    ┌────────────────────────────────┐
+    │  Your App                      │
+    │  • Verifies HMAC signature     │
+    │  • Updates database            │
+    │  • Shows on dashboard          │
+    │  • Updates analytics/charts    │
+    └────────────────────────────────┘
+
+
+HOW DEMO MODE IS DETECTED:
+═══════════════════════════════════════════════════════════════════════
+
+    ┌──────────────────────┐
+    │  config.py checks:   │
+    │                      │
+    │  if BTCPAY_HOST      │──────► Set? ──┐
+    │     is configured    │               │
+    │                      │               │
+    │  AND                 │               │
+    │                      │               │
+    │  if BTCPAY_STORE_ID  │               │
+    │     is configured    │               │
+    └──────────────────────┘               │
+                                           │
+                        ┌──────────────────┴────────────────┐
+                        │                                   │
+                        ▼ YES                               ▼ NO
+              ┌──────────────────┐              ┌──────────────────┐
+              │  Real Data Mode  │              │   Demo Mode      │
+              │                  │              │                  │
+              │  • No banner     │              │  • Yellow banner │
+              │  • Real invoices │              │  • Fake data     │
+              │  • Live updates  │              │  • Seeded data   │
+              └──────────────────┘              └──────────────────┘
+
+
+STEP-BY-STEP CONNECTION PROCESS:
+═══════════════════════════════════════════════════════════════════════
+
+    Step 1: Get BTCPay Access
+    ├─→ Option A: Use existing BTCPay Server
+    ├─→ Option B: Sign up for hosted BTCPay (BTCPay Jungle, etc.)
+    └─→ Option C: Use public demo server for testing
+
+    Step 2: Create API Key
+    ├─→ Log into BTCPay Server
+    ├─→ Go to Account → API Keys
+    ├─→ Generate key with store permissions
+    └─→ Copy the API key
+
+    Step 3: Get Store ID
+    ├─→ Go to your Store in BTCPay
+    ├─→ Look at URL: /stores/{STORE_ID}/...
+    └─→ Copy the Store ID
+
+    Step 4: Configure Your App
+    ├─→ Run: python3 setup_btcpay.py
+    ├─→ OR manually create .env file
+    └─→ Fill in all 4 values
+
+    Step 5: Restart App
+    ├─→ pkill -f uvicorn
+    ├─→ uvicorn app.main:app --reload
+    └─→ Demo mode is now OFF!
+
+    Step 6: Test
+    ├─→ curl http://localhost:8000/health
+    ├─→ Should show: "mode": "btcpay"
+    └─→ Dashboard shows real invoices
+
+    Step 7: Set Up Webhooks (Optional but Recommended)
+    ├─→ In BTCPay: Store → Webhooks → Create
+    ├─→ Use same secret from .env file
+    └─→ Get real-time invoice updates
+
+
+SECURITY NOTE:
+═══════════════════════════════════════════════════════════════════════
+
+    ⚠️  NEVER commit .env file to git!
+
+    The .gitignore file already excludes it:
+    
+    ✓ .env        ← Your secrets (excluded)
+    ✓ .env.example ← Template only (safe to commit)
+
+    Your API key gives access to your BTCPay store!
+    Keep it secret, keep it safe.
+
+
+TROUBLESHOOTING:
+═══════════════════════════════════════════════════════════════════════
+
+    Issue                           Fix
+    ─────────────────────────────────────────────────────────────
+    Still shows demo mode          → Check .env file exists
+                                   → Verify credentials are correct
+                                   → Restart the application
+
+    "Unauthorized" error           → Regenerate API key in BTCPay
+                                   → Check permissions are enabled
+
+    No invoices appear             → Your store may be empty
+                                   → Create test invoice in BTCPay
+                                   → Click "Refresh Data" button
+
+    Webhook not working            → Check webhook URL is correct
+                                   → Verify webhook secret matches
+                                   → Check BTCPay webhook logs
+
+
+═══════════════════════════════════════════════════════════════════════
+                Ready to connect? Run: python3 setup_btcpay.py
+═══════════════════════════════════════════════════════════════════════
