@@ -1,0 +1,67 @@
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║     🚀 QUICK START: CONNECT TO REAL BTCPAY DATA (1 MINUTE)      ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+
+THE PROBLEM:
+  Your app shows "Demo Mode" and uses fake data
+
+THE SOLUTION:
+  Run the setup wizard and connect to BTCPay Server
+
+
+═══════════════════════════════════════════════════════════════════
+
+STEP 1: Run Setup Wizard
+─────────────────────────
+
+$ python3 setup_btcpay.py
+
+Follow the prompts to enter your BTCPay credentials.
+
+
+STEP 2: Restart App
+───────────────────
+
+$ pkill -f uvicorn
+$ uvicorn app.main:app --reload
+
+
+STEP 3: Verify
+──────────────
+
+$ curl http://localhost:8000/health
+
+Should show: "mode": "btcpay" (not "demo")
+
+Open: http://localhost:8000
+→ No yellow banner = Real data connected!
+
+
+═══════════════════════════════════════════════════════════════════
+
+WHAT IF I DON'T HAVE BTCPAY SERVER?
+
+Test with public demo:
+  1. Go to: https://mainnet.demo.btcpayserver.org/
+  2. Create free account
+  3. Create store
+  4. Generate API key
+  5. Run wizard (choose option 2)
+
+Or use hosted BTCPay:
+  • BTCPay Jungle: https://btcpayjungle.com/
+  • Voltage: https://voltage.cloud/
+
+
+═══════════════════════════════════════════════════════════════════
+
+NEED HELP?
+
+Read full guides:
+  $ cat SWITCH_TO_REAL_DATA.md
+  $ cat DEMO_VS_REAL_DATA.txt
+
+═══════════════════════════════════════════════════════════════════
