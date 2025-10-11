@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - BTC Crowdfund Analytics{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+    <h2>Settings</h2>
+    
+    <div class="settings-section">
+        <h3>BTCPay Server Configuration</h3>
+        <p>Configure your BTCPay Server connection. These settings are read from environment variables (.env file).</p>
+        
+        <div class="config-display">
+            <div class="config-item">
+                <label>BTCPay Host:</label>
+                <code>{{ config.BTCPAY_HOST or 'Not configured' }}</code>
+            </div>
+            
+            <div class="config-item">
+                <label>Store ID:</label>
+                <code>{{ config.BTCPAY_STORE_ID or 'Not configured' }}</code>
+            </div>
+            
+            <div class="config-item">
+                <label>API Key:</label>
+                <code>
+                    {% if config.BTCPAY_API_KEY %}
+                        {{ config.BTCPAY_API_KEY[:8] }}...{{ config.BTCPAY_API_KEY[-4:] }}
+                    {% else %}
+                        Not configured
+                    {% endif %}
+                </code>
+            </div>
+            
+            <div class="config-item">
+                <label>Webhook Secret:</label>
+                <code>
+                    {% if config.BTCPAY_WEBHOOK_SECRET %}
+                        {{ config.BTCPAY_WEBHOOK_SECRET[:8] }}***
+                    {% else %}
+                        Not configured
+                    {% endif %}
+                </code>
+            </div>
+            
+            <div class="config-item">
+                <label>Mode:</label>
+                <code>{{ 'Demo Mode' if config.is_demo_mode else 'Connected' }}</code>
+            </div>
+        </div>
+    </div>
+    
+    <div class="settings-section">
+        <h3>Angor Configuration</h3>
+        <div class="config-item">
+            <label>Angor Enabled:</label>
+            <code>{{ 'Yes' if config.ANGOR_ENABLE else 'No' }}</code>
+        </div>
+    </div>
+    
+    <div class="settings-section">
+        <h3>Setup Instructions</h3>
+        <ol>
+            <li>Create a <code>.env</code> file in the project root (copy from <code>.env.example</code>)</li>
+            <li>Set your BTCPay Server host, API key, store ID, and webhook secret</li>
+            <li>Restart the application to apply changes</li>
+            <li>Use the "Refresh Data" button on the dashboard to fetch invoices</li>
+        </ol>
+        
+        <div class="info-box">
+            <strong>📖 Quick Start:</strong>
+            <p>If you don't have BTCPay configured, the app runs in demo mode with synthetic data.</p>
+            <p>To seed demo data: <code>python -m app.seed_demo</code></p>
+        </div>
+    </div>
+    
+    <div class="settings-section">
+        <h3>Webhook URL</h3>
+        <p>Configure this webhook URL in your BTCPay Server store settings:</p>
+        <div class="webhook-url">
+            <code>https://your-domain.com/webhook</code>
+        </div>
+        <p class="note">Replace <code>your-domain.com</code> with your actual domain. The webhook secret should match your .env file.</p>
+    </div>
+</div>
+{% endblock %}

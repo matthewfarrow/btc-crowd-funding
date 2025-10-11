@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BTC Crowdfund Analytics{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>₿ BTC Crowdfund Analytics</h1>
+            <nav>
+                <a href="/">Dashboard</a>
+                <a href="/settings">Settings</a>
+                <a href="/logs">Webhook Logs</a>
+            </nav>
+        </div>
+    </header>
+    
+    {% if is_demo %}
+    <div class="demo-banner">
+        <div class="container">
+            ⚠️ <strong>Demo Mode</strong> - Using synthetic data. Configure BTCPay in Settings to connect real data.
+        </div>
+    </div>
+    {% endif %}
+    
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>BTC Crowdfund Analytics v1.0 | Weekend MVP</p>
+        </div>
+    </footer>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

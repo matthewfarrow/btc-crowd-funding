@@ -1,0 +1,44 @@
+{
+  "projects": [
+    {
+      "id": "1",
+      "title": "Open Source Bitcoin Wallet",
+      "target_btc": 1.5,
+      "raised_btc": 1.2,
+      "created_at": "2024-09-15T10:00:00Z",
+      "description": "Building a privacy-focused Bitcoin wallet"
+    },
+    {
+      "id": "2",
+      "title": "Lightning Network Infrastructure",
+      "target_btc": 3.0,
+      "raised_btc": 2.4,
+      "created_at": "2024-10-01T14:30:00Z",
+      "description": "Expanding Lightning Network node coverage"
+    },
+    {
+      "id": "3",
+      "title": "Bitcoin Education Platform",
+      "target_btc": 0.5,
+      "raised_btc": 0.5,
+      "created_at": "2024-08-20T09:15:00Z",
+      "description": "Free Bitcoin education for developing countries"
+    },
+    {
+      "id": "4",
+      "title": "Mining Pool Decentralization",
+      "target_btc": 2.0,
+      "raised_btc": 0.8,
+      "created_at": "2024-09-05T16:45:00Z",
+      "description": "Supporting small-scale mining operations"
+    },
+    {
+      "id": "5",
+      "title": "Bitcoin Privacy Tools",
+      "target_btc": 1.0,
+      "raised_btc": 0.3,
+      "created_at": "2024-10-10T11:20:00Z",
+      "description": "Developing privacy-enhancing Bitcoin tools"
+    }
+  ]
+}

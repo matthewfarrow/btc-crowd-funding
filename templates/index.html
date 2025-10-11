@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="controls">
+        <div class="source-toggle">
+            <a href="/?source=btcpay" class="btn {% if source == 'btcpay' %}active{% endif %}">BTCPay Invoices</a>
+            {% if config.ANGOR_ENABLE %}
+            <a href="/?source=angor" class="btn {% if source == 'angor' %}active{% endif %}">Angor Projects</a>
+            {% endif %}
+        </div>
+        
+        {% if source == 'btcpay' %}
+        <form method="post" action="/refresh" style="display: inline;">
+            <button type="submit" class="btn btn-primary">🔄 Refresh Data</button>
+        </form>
+        {% endif %}
+    </div>
+    
+    {% if source == 'btcpay' %}
+    <!-- BTCPay Invoice Analytics -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <h3>Total Raised</h3>
+            <div class="kpi-value">{{ "%.8f"|format(analytics.total_raised_btc) }} BTC</div>
+            <div class="kpi-subvalue">${{ "%.2f"|format(analytics.total_raised_fiat) }}</div>
+        </div>
+        
+        <div class="kpi-card">
+            <h3>Invoice Count</h3>
+            <div class="kpi-value">{{ analytics.count }}</div>
+            <div class="kpi-subvalue">Total invoices</div>
+        </div>
+        
+        <div class="kpi-card">
+            <h3>Average Contribution</h3>
+            <div class="kpi-value">{{ "%.8f"|format(analytics.average_contribution_btc) }} BTC</div>
+            <div class="kpi-subvalue">Per invoice</div>
+        </div>
+        
+        <div class="kpi-card">
+            <h3>Status Distribution</h3>
+            <div class="kpi-value">
+                <span class="status-badge status-settled">{{ analytics.paid_count }} Paid</span>
+            </div>
+            <div class="kpi-subvalue">
+                <span class="status-badge status-expired">{{ analytics.expired_count }} Expired</span>
+                <span class="status-badge status-pending">{{ analytics.pending_count }} Pending</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts -->
+    <div class="charts-grid">
+        <div class="chart-container">
+            <h3>Daily Raised (Last 30 Days)</h3>
+            <canvas id="dailyChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h3>Status Distribution</h3>
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Angor Project Analytics -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <h3>Total Target</h3>
+            <div class="kpi-value">{{ "%.8f"|format(analytics.total_target) }} BTC</div>
+        </div>
+        
+        <div class="kpi-card">
+            <h3>Total Raised</h3>
+            <div class="kpi-value">{{ "%.8f"|format(analytics.total_raised) }} BTC</div>
+        </div>
+        
+        <div class="kpi-card">
+            <h3>Project Count</h3>
+            <div class="kpi-value">{{ analytics.count }}</div>
+        </div>
+        
+        <div class="kpi-card">
+            <h3>Average Raised</h3>
+            <div class="kpi-value">{{ "%.8f"|format(analytics.average_raised) }} BTC</div>
+        </div>
+    </div>
+    
+    <!-- Project List -->
+    <div class="projects-list">
+        <h3>Projects</h3>
+        {% for project in analytics.projects %}
+        <div class="project-card">
+            <h4>{{ project.title }}</h4>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ project.percentage }}%"></div>
+            </div>
+            <div class="project-stats">
+                <span>Raised: {{ "%.8f"|format(project.raised) }} BTC</span>
+                <span>Target: {{ "%.8f"|format(project.target) }} BTC</span>
+                <span class="source-badge">{{ project.source }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if source == 'btcpay' %}
+<script>
+// Daily Chart
+const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+const dailyData = {{ daily_data | tojson }};
+const dailyChart = new Chart(dailyCtx, {
+    type: 'line',
+    data: {
+        labels: dailyData.map(d => d.date),
+        datasets: [{
+            label: 'BTC Raised',
+            data: dailyData.map(d => d.amount_btc),
+            borderColor: 'rgb(255, 159, 64)',
+            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Status Chart
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusDist = {{ analytics.status_distribution | tojson }};
+const statusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(statusDist),
+        datasets: [{
+            data: Object.values(statusDist),
+            backgroundColor: [
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(153, 102, 255, 0.8)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Webhook Logs - BTC Crowdfund Analytics{% endblock %}
+
+{% block content %}
+<div class="logs-page">
+    <h2>Webhook Delivery Logs</h2>
+    
+    <p>Recent webhook deliveries from BTCPay Server.</p>
+    
+    <div class="logs-table-container">
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Event Type</th>
+                    <th>Verified</th>
+                    <th>Signature</th>
+                    <th>Payload Preview</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if logs %}
+                    {% for log in logs %}
+                    <tr class="{% if log.verified %}verified{% else %}unverified{% endif %}">
+                        <td>{{ log.received_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td><span class="event-badge">{{ log.event_type }}</span></td>
+                        <td>
+                            {% if log.verified %}
+                                <span class="badge badge-success">✓ Verified</span>
+                            {% else %}
+                                <span class="badge badge-error">✗ Failed</span>
+                            {% endif %}
+                        </td>
+                        <td><code class="signature-short">{{ log.signature[:16] }}...</code></td>
+                        <td><code class="payload-preview">{{ log.payload[:100] }}...</code></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="no-data">No webhook deliveries logged yet.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="info-box">
+        <h4>💡 Testing Webhooks</h4>
+        <p>To test webhook delivery locally, you can use a tool like ngrok to expose your local server:</p>
+        <pre><code>ngrok http 8000</code></pre>
+        <p>Then configure the ngrok URL in your BTCPay Server webhook settings.</p>
+        
+        <p>Or simulate a webhook delivery with curl (example in README.md).</p>
+    </div>
+</div>
+{% endblock %}
