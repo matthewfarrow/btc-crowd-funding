@@ -2,7 +2,7 @@
 
 MVP for Bitcoin crowdfunding analytics. Displays dashboard analytics from BTCPay Server invoices with Angor project support and demo fallback.
 
-## 🚀 Features
+## Features
 
 - **BTCPay Server Integration**: Fetch and cache invoices via Greenfield API
 - **Webhook Support**: Receive real-time invoice updates with HMAC-SHA256 verification
@@ -12,7 +12,7 @@ MVP for Bitcoin crowdfunding analytics. Displays dashboard analytics from BTCPay
 - **SQLite Caching**: Fast local persistence with SQLModel
 - **Server-Rendered**: Clean Jinja2 templates with Chart.js visualizations
 
-## 📋 Tech Stack
+## Tech Stack
 
 - **Python 3.11**
 - **FastAPI** - Web framework
@@ -22,7 +22,7 @@ MVP for Bitcoin crowdfunding analytics. Displays dashboard analytics from BTCPay
 - **httpx** - HTTP client
 - **pytest** - Unit tests
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 btc-crowd-funding/
@@ -55,7 +55,7 @@ btc-crowd-funding/
 └── README.md
 ```
 
-## 🔧 Installation
+## Installation
 
 ### Step 1: Clone and Setup Virtual Environment
 
