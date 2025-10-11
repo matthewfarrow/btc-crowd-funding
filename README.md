@@ -1,6 +1,6 @@
 # BTC Crowdfund Analytics
 
-A weekend MVP for Bitcoin crowdfunding analytics. Displays dashboard analytics from BTCPay Server invoices with Angor project support and demo fallback.
+MVP for Bitcoin crowdfunding analytics. Displays dashboard analytics from BTCPay Server invoices with Angor project support and demo fallback.
 
 ## 🚀 Features
 
