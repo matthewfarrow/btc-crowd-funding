@@ -1,44 +1,27 @@
-"""FastAPI application setup."""
+"""CITADEL - Bitcoin Crowdfunding Analytics Platform."""
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from sqlmodel import SQLModel, create_engine, Session
-from app.config import config
-
-
-# Database engine
-engine = create_engine(config.DATABASE_URL, echo=False)
-
-
-def create_db_and_tables():
-    """Create database tables on startup."""
-    SQLModel.metadata.create_all(engine)
-
-
-def get_session():
-    """Get database session."""
-    with Session(engine) as session:
-        yield session
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
     # Startup
-    create_db_and_tables()
-    print(f"🚀 BTC Crowdfund Analytics starting...")
-    print(f"📊 Mode: {'Demo' if config.is_demo_mode else 'BTCPay Connected'}")
+    print("⚡ CITADEL starting...")
+    print("🏰 Bitcoin Crowdfunding Analytics Aggregator")
+    print("📊 Data Source: Angor Indexer (Public API)")
     yield
     # Shutdown
-    print("👋 Shutting down...")
+    print("👋 CITADEL shutting down...")
 
 
 # Create FastAPI app
 app = FastAPI(
-    title="BTC Crowdfund Analytics",
-    description="Bitcoin crowdfunding analytics dashboard",
-    version="1.0.0",
+    title="CITADEL - Bitcoin Crowdfunding Analytics",
+    description="Public analytics dashboard for Bitcoin-native crowdfunding protocols",
+    version="2.0.0",
     lifespan=lifespan
 )
 
@@ -48,7 +31,7 @@ static_path = os.path.join(os.path.dirname(__file__), "..", "static")
 os.makedirs(static_path, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 
-# Include routers - Import here to avoid circular imports
+# Include routers
 from app import views
 app.include_router(views.router)
 
@@ -58,5 +41,17 @@ async def health_check():
     """Health check endpoint."""
     return {
         "status": "healthy",
-        "mode": "demo" if config.is_demo_mode else "btcpay"
+        "service": "citadel",
+        "data_source": "angor_indexer"
+    }
+
+
+@app.get("/api/projects")
+async def api_projects():
+    """API endpoint for fetching all crowdfunding projects."""
+    from app.angor_adapter import get_angor_projects
+    projects = await get_angor_projects()
+    return {
+        "count": len(projects),
+        "projects": projects
     }

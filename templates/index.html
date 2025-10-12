@@ -2,163 +2,189 @@
 
 {% block content %}
 <div class="dashboard">
-    <div class="controls">
-        <div class="source-toggle">
-            <a href="/?source=btcpay" class="btn {% if source == 'btcpay' %}active{% endif %}">BTCPay Invoices</a>
-            {% if config.ANGOR_ENABLE %}
-            <a href="/?source=angor" class="btn {% if source == 'angor' %}active{% endif %}">Angor Projects</a>
-            {% endif %}
-        </div>
-        
-        {% if source == 'btcpay' %}
-        <form method="post" action="/refresh" style="display: inline;">
-            <button type="submit" class="btn btn-primary">🔄 Refresh Data</button>
-        </form>
-        {% endif %}
-    </div>
-    
-    {% if source == 'btcpay' %}
-    <!-- BTCPay Invoice Analytics -->
+    <!-- CITADEL Analytics - Bitcoin Crowdfunding -->
     <div class="kpi-grid">
         <div class="kpi-card">
-            <h3>Total Raised</h3>
-            <div class="kpi-value">{{ "%.8f"|format(analytics.total_raised_btc) }} BTC</div>
-            <div class="kpi-subvalue">${{ "%.2f"|format(analytics.total_raised_fiat) }}</div>
-        </div>
-        
-        <div class="kpi-card">
-            <h3>Invoice Count</h3>
+            <h3>Total Projects</h3>
             <div class="kpi-value">{{ analytics.count }}</div>
-            <div class="kpi-subvalue">Total invoices</div>
-        </div>
-        
-        <div class="kpi-card">
-            <h3>Average Contribution</h3>
-            <div class="kpi-value">{{ "%.8f"|format(analytics.average_contribution_btc) }} BTC</div>
-            <div class="kpi-subvalue">Per invoice</div>
-        </div>
-        
-        <div class="kpi-card">
-            <h3>Status Distribution</h3>
-            <div class="kpi-value">
-                <span class="status-badge status-settled">{{ analytics.paid_count }} Paid</span>
-            </div>
-            <div class="kpi-subvalue">
-                <span class="status-badge status-expired">{{ analytics.expired_count }} Expired</span>
-                <span class="status-badge status-pending">{{ analytics.pending_count }} Pending</span>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Charts -->
-    <div class="charts-grid">
-        <div class="chart-container">
-            <h3>Daily Raised (Last 30 Days)</h3>
-            <canvas id="dailyChart"></canvas>
-        </div>
-        
-        <div class="chart-container">
-            <h3>Status Distribution</h3>
-            <canvas id="statusChart"></canvas>
-        </div>
-    </div>
-    
-    {% else %}
-    <!-- Angor Project Analytics -->
-    <div class="kpi-grid">
-        <div class="kpi-card">
-            <h3>Total Target</h3>
-            <div class="kpi-value">{{ "%.8f"|format(analytics.total_target) }} BTC</div>
+            <div class="kpi-subvalue">Active Crowdfunding</div>
         </div>
         
         <div class="kpi-card">
             <h3>Total Raised</h3>
-            <div class="kpi-value">{{ "%.8f"|format(analytics.total_raised) }} BTC</div>
+            <div class="kpi-value">{{ "%.4f"|format(analytics.total_raised_btc) }} ₿</div>
+            <div class="kpi-subvalue">{{ "{:,}".format(analytics.total_raised) }} sats</div>
         </div>
         
         <div class="kpi-card">
-            <h3>Project Count</h3>
-            <div class="kpi-value">{{ analytics.count }}</div>
+            <h3>Total Investors</h3>
+            <div class="kpi-value">{{ analytics.total_investors }}</div>
+            <div class="kpi-subvalue">Bitcoin Backers</div>
         </div>
         
         <div class="kpi-card">
-            <h3>Average Raised</h3>
-            <div class="kpi-value">{{ "%.8f"|format(analytics.average_raised) }} BTC</div>
+            <h3>Funds Deployed</h3>
+            <div class="kpi-value">{{ "%.4f"|format(analytics.total_spent_btc) }} ₿</div>
+            <div class="kpi-subvalue">Spent by Founders</div>
         </div>
     </div>
     
-    <!-- Project List -->
-    <div class="projects-list">
-        <h3>Projects</h3>
-        {% for project in analytics.projects %}
-        <div class="project-card">
-            <h4>{{ project.title }}</h4>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ project.percentage }}%"></div>
+    <!-- Top Funded Projects -->
+    {% if analytics.top_funded %}
+    <div class="insights-section">
+        <h2>🏆 Top Funded Projects</h2>
+        <div class="top-projects-grid">
+            {% for project in analytics.top_funded %}
+            <div class="top-project-card">
+                <div class="rank-badge">{{ loop.index }}</div>
+                <h4>{{ project.title }}</h4>
+                <div class="project-id">{{ project.project_identifier[:20] }}...</div>
+                <div class="top-stats">
+                    <div class="stat">
+                        <span class="label">Raised:</span>
+                        <span class="value">{{ "%.4f"|format(project.amount_raised_btc) }} ₿</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Investors:</span>
+                        <span class="value">{{ project.investor_count }}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Spent:</span>
+                        <span class="value">{{ "%.4f"|format(project.amount_spent_btc) }} ₿</span>
+                    </div>
+                </div>
             </div>
-            <div class="project-stats">
-                <span>Raised: {{ "%.8f"|format(project.raised) }} BTC</span>
-                <span>Target: {{ "%.8f"|format(project.target) }} BTC</span>
-                <span class="source-badge">{{ project.source }}</span>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
     {% endif %}
+    
+    <!-- All Projects -->
+    <div class="projects-section">
+        <h2>⚡ All Bitcoin Crowdfunding Projects ⚡</h2>
+        <div class="projects-grid">
+            {% for project in analytics.projects %}
+            <div class="project-card">
+                <h4>{{ project.title }}</h4>
+                <div class="project-id">{{ project.project_identifier or project.id }}</div>
+                
+                <div class="project-stats-detailed">
+                    <div class="stat-row">
+                        <span class="label">💰 Raised:</span>
+                        <span class="value">{{ "%.4f"|format(project.amount_raised_btc) }} ₿</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">👥 Investors:</span>
+                        <span class="value">{{ project.investor_count }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">📤 Spent:</span>
+                        <span class="value">{{ "%.4f"|format(project.amount_spent_btc) }} ₿</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">⚡ Source:</span>
+                        <span class="source-badge">{{ project.source }}</span>
+                    </div>
+                </div>
+                
+                {% if project.founder_key %}
+                <div class="project-meta">
+                    <small style="word-break: break-all; color: var(--text-inscription);">
+                        🔑 {{ project.founder_key[:32] }}...
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
-{% if source == 'btcpay' %}
-<script>
-// Daily Chart
-const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-const dailyData = {{ daily_data | tojson }};
-const dailyChart = new Chart(dailyCtx, {
-    type: 'line',
-    data: {
-        labels: dailyData.map(d => d.date),
-        datasets: [{
-            label: 'BTC Raised',
-            data: dailyData.map(d => d.amount_btc),
-            borderColor: 'rgb(255, 159, 64)',
-            backgroundColor: 'rgba(255, 159, 64, 0.2)',
-            tension: 0.3
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-});
+<style>
+.insights-section {
+    margin: 2rem 0;
+}
 
-// Status Chart
-const statusCtx = document.getElementById('statusChart').getContext('2d');
-const statusDist = {{ analytics.status_distribution | tojson }};
-const statusChart = new Chart(statusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: Object.keys(statusDist),
-        datasets: [{
-            data: Object.values(statusDist),
-            backgroundColor: [
-                'rgba(75, 192, 192, 0.8)',
-                'rgba(255, 99, 132, 0.8)',
-                'rgba(255, 206, 86, 0.8)',
-                'rgba(153, 102, 255, 0.8)'
-            ]
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false
-    }
-});
-</script>
-{% endif %}
+.top-projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.top-project-card {
+    position: relative;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    padding: 1.5rem;
+    border-radius: 0;
+}
+
+.rank-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 40px;
+    height: 40px;
+    background: var(--accent);
+    color: var(--bg-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border: 2px solid var(--border);
+}
+
+.top-stats {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.top-stats .stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+}
+
+.top-stats .label {
+    color: var(--text-inscription);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
+.top-stats .value {
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.project-stats-detailed {
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    font-size: 0.9rem;
+}
+
+.stat-row .label {
+    color: var(--text-inscription);
+}
+
+.stat-row .value {
+    color: var(--accent);
+    font-weight: bold;
+}
+</style>
 {% endblock %}

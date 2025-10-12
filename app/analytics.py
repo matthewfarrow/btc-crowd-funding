@@ -1,150 +1,91 @@
-"""Analytics functions for aggregating invoice and project data."""
+"""Analytics functions for Bitcoin crowdfunding projects - CITADEL."""
 
 from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, List, Any
-from app.models import Invoice, SourceProject
 
 
-def aggregate_invoices(invoices: List[Invoice]) -> Dict[str, Any]:
-    """Aggregate invoice statistics.
-    
-    Args:
-        invoices: List of Invoice objects
-        
-    Returns:
-        Dictionary with KPIs and chart data
-    """
-    if not invoices:
-        return {
-            "total_raised_btc": 0.0,
-            "total_raised_fiat": 0.0,
-            "count": 0,
-            "average_contribution_btc": 0.0,
-            "paid_count": 0,
-            "expired_count": 0,
-            "pending_count": 0,
-            "status_distribution": {},
-            "daily_totals": []
-        }
-    
-    # Calculate totals
-    total_btc = sum(inv.amount_btc or 0 for inv in invoices)
-    total_fiat = sum(inv.amount for inv in invoices if inv.status == "Settled")
-    count = len(invoices)
-    
-    # Status counts
-    status_counts = defaultdict(int)
-    for inv in invoices:
-        status_counts[inv.status] += 1
-    
-    paid_count = status_counts.get("Settled", 0)
-    expired_count = status_counts.get("Expired", 0) + status_counts.get("Invalid", 0)
-    pending_count = count - paid_count - expired_count
-    
-    # Average
-    avg_btc = total_btc / count if count > 0 else 0
-    
-    # Daily bucketing
-    daily_buckets = defaultdict(float)
-    for inv in invoices:
-        if inv.paid_at and inv.status == "Settled":
-            day_key = inv.paid_at.strftime("%Y-%m-%d")
-            daily_buckets[day_key] += (inv.amount_btc or 0)
-    
-    # Sort daily data
-    daily_totals = [
-        {"date": date, "amount_btc": amount}
-        for date, amount in sorted(daily_buckets.items())
-    ]
-    
-    return {
-        "total_raised_btc": round(total_btc, 8),
-        "total_raised_fiat": round(total_fiat, 2),
-        "count": count,
-        "average_contribution_btc": round(avg_btc, 8),
-        "paid_count": paid_count,
-        "expired_count": expired_count,
-        "pending_count": pending_count,
-        "status_distribution": dict(status_counts),
-        "daily_totals": daily_totals
-    }
-
-
-def aggregate_projects(projects: List[SourceProject]) -> Dict[str, Any]:
-    """Aggregate project statistics.
-    
-    Args:
-        projects: List of SourceProject objects
-        
-    Returns:
-        Dictionary with project KPIs
-    """
+def aggregate_projects(projects: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Aggregate crowdfunding project statistics with rich insights."""
     if not projects:
         return {
             "total_target": 0.0,
             "total_raised": 0.0,
+            "total_raised_btc": 0.0,
+            "total_spent": 0.0,
+            "total_spent_btc": 0.0,
             "count": 0,
+            "total_investors": 0,
             "average_raised": 0.0,
-            "projects": []
+            "average_raised_btc": 0.0,
+            "average_target": 0.0,
+            "funding_completion_rate": 0.0,
+            "projects": [],
+            "top_funded": [],
+            "most_investors": [],
+            "daily_totals": []
         }
     
-    total_target = sum(p.amount_target for p in projects)
-    total_raised = sum(p.amount_raised for p in projects)
+    # Calculate totals (amounts in satoshis)
+    total_target = sum(p.get("amount_target", 0) for p in projects)
+    total_raised = sum(p.get("amount_raised", 0) for p in projects)
+    total_spent = sum(p.get("amount_spent", 0) for p in projects)
+    total_investors = sum(p.get("investor_count", 0) for p in projects)
     count = len(projects)
-    avg_raised = total_raised / count if count > 0 else 0
     
-    # Build project list
-    project_list = [
-        {
-            "id": p.id,
-            "title": p.title,
-            "target": p.amount_target,
-            "raised": p.amount_raised,
-            "percentage": (p.amount_raised / p.amount_target * 100) if p.amount_target > 0 else 0,
-            "source": p.source
-        }
-        for p in projects
-    ]
+    # Convert satoshis to BTC for display
+    total_raised_btc = total_raised / 100_000_000
+    total_spent_btc = total_spent / 100_000_000
+    avg_raised = total_raised / count if count > 0 else 0
+    avg_raised_btc = avg_raised / 100_000_000
+    avg_target = total_target / count if count > 0 else 0
+    completion_rate = (total_raised / total_target * 100) if total_target > 0 else 0
+    
+    # Build project list with enhanced data
+    project_list = []
+    for p in projects:
+        amount_raised_sat = p.get("amount_raised", 0)
+        amount_raised_btc = amount_raised_sat / 100_000_000
+        amount_spent_sat = p.get("amount_spent", 0)
+        amount_spent_btc = amount_spent_sat / 100_000_000
+        investor_count = p.get("investor_count", 0)
+        
+        project_list.append({
+            "id": p.get("id"),
+            "title": p.get("title"),
+            "amount_target": p.get("amount_target", 0),
+            "amount_raised": amount_raised_sat,
+            "amount_raised_btc": round(amount_raised_btc, 8),
+            "amount_spent": amount_spent_sat,
+            "amount_spent_btc": round(amount_spent_btc, 8),
+            "investor_count": investor_count,
+            "progress_percent": (amount_raised_sat / p.get("amount_target", 1) * 100) if p.get("amount_target", 0) > 0 else 0,
+            "created_at": p.get("created_at"),
+            "source": p.get("source"),
+            "founder_key": p.get("founder_key", ""),
+            "project_identifier": p.get("project_identifier", ""),
+            "nostr_event_id": p.get("nostr_event_id", "")
+        })
+    
+    # Sort for insights
+    top_funded = sorted(project_list, key=lambda x: x["amount_raised"], reverse=True)[:5]
+    most_investors = sorted(project_list, key=lambda x: x["investor_count"], reverse=True)[:5]
     
     return {
         "total_target": round(total_target, 8),
-        "total_raised": round(total_raised, 8),
+        "total_raised": total_raised,
+        "total_raised_btc": round(total_raised_btc, 8),
+        "total_spent": total_spent,
+        "total_spent_btc": round(total_spent_btc, 8),
         "count": count,
-        "average_raised": round(avg_raised, 8),
-        "projects": project_list
+        "total_investors": total_investors,
+        "average_raised": avg_raised,
+        "average_raised_btc": round(avg_raised_btc, 8),
+        "average_target": round(avg_target, 8),
+        "funding_completion_rate": round(completion_rate, 2),
+        "projects": project_list,
+        "top_funded": top_funded,
+        "most_investors": most_investors,
+        "daily_totals": []
     }
 
-
-def bucket_by_day(invoices: List[Invoice], days: int = 30) -> List[Dict[str, Any]]:
-    """Bucket invoices by day for time series charts.
-    
-    Args:
-        invoices: List of Invoice objects
-        days: Number of days to include
-        
-    Returns:
-        List of daily bucket dictionaries
-    """
-    # Initialize buckets
-    end_date = datetime.utcnow().date()
-    start_date = end_date - timedelta(days=days)
-    
-    buckets = {}
-    current_date = start_date
-    while current_date <= end_date:
-        buckets[current_date.isoformat()] = 0.0
-        current_date += timedelta(days=1)
-    
-    # Fill buckets
-    for inv in invoices:
-        if inv.paid_at and inv.status == "Settled":
-            day_key = inv.paid_at.date().isoformat()
-            if day_key in buckets:
-                buckets[day_key] += (inv.amount_btc or 0)
-    
-    # Convert to list
-    return [
-        {"date": date, "amount_btc": amount}
-        for date, amount in sorted(buckets.items())
-    ]
