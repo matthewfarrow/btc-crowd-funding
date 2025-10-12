@@ -1,4 +1,4 @@
-.PHONY: install run test seed clean
+.PHONY: install run test clean
 
 install:
 	python3 -m venv .venv
@@ -9,9 +9,6 @@ run:
 
 test:
 	. .venv/bin/activate && pytest -v
-
-seed:
-	. .venv/bin/activate && python3 -m app.seed_demo
 
 clean:
 	rm -rf .venv

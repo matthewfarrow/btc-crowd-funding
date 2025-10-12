@@ -2,6 +2,20 @@
 
 {% block content %}
 <div class="dashboard">
+    {% if data_source == "angor_indexer" %}
+    <div class="data-source-banner live">
+        Live data via Angor testnet indexer
+    </div>
+    {% elif data_source == "angor_nostr" %}
+    <div class="data-source-banner live">
+        Live data via Angor Nostr relays
+    </div>
+    {% elif data_source == "demo" %}
+    <div class="data-source-banner demo">
+        Offline demo dataset loaded (no network access detected)
+    </div>
+    {% endif %}
+
     <!-- CITADEL Analytics - Bitcoin Crowdfunding -->
     <div class="kpi-grid">
         <div class="kpi-card">
@@ -185,6 +199,26 @@
 .stat-row .value {
     color: var(--accent);
     font-weight: bold;
+}
+
+.data-source-banner {
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    display: inline-block;
+}
+
+.data-source-banner.live {
+    background: rgba(67, 160, 71, 0.15);
+    color: #2e7d32;
+}
+
+.data-source-banner.demo {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ff8f00;
 }
 </style>
 {% endblock %}

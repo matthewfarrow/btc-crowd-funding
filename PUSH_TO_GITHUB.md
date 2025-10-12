@@ -1,5 +1,7 @@
 # Push to GitHub Instructions
 
+> **Heads-up:** Update the repository description to reflect the Angor-focused dashboard before publishing.
+
 Your local repository is initialized and committed! Now you need to create the GitHub repository and push.
 
 ## Option 1: Create Repository via GitHub Web Interface (Recommended)

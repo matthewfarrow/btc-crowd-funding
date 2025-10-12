@@ -1,5 +1,8 @@
 # 📊 Executive Summary - BTC Crowdfund Analytics
 
+> **Note:** This document captures the earlier BTCPay-centric MVP scope.  
+> The repository has since pivoted to an Angor-only analytics dashboard — see `README.md` for the current status and roadmap.
+
 **Project:** Bitcoin Crowdfunding Analytics Dashboard  
 **Status:** ✅ MVP Complete (Demo Mode) | ❌ Real Integration Pending  
 **Last Updated:** October 11, 2025

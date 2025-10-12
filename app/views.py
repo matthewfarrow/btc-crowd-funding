@@ -22,8 +22,8 @@ async def dashboard(request: Request):
     Shows ALL Angor crowdfunding projects from the Angor Indexer API.
     No authentication, no API keys needed - fully public data!
     """
-    # Fetch ALL Angor projects from the indexer
     projects = await get_angor_projects()
+    data_source = projects[0].get("source", "unknown") if projects else "unknown"
     
     # Calculate analytics
     analytics = aggregate_projects(projects)
@@ -34,6 +34,7 @@ async def dashboard(request: Request):
             "request": request,
             "analytics": analytics,
             "projects": projects,
-            "source": "angor"
+            "data_source": data_source,
+            "is_demo": data_source == "demo"
         }
     )

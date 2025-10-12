@@ -21,36 +21,38 @@ ANGOR_INDEXER_TESTNET = "https://tbtc.indexer.angor.io/api/query/Angor/projects"
 
 
 async def get_angor_projects() -> List[Dict[str, Any]]:
-    """Fetch ALL Angor projects using the indexer API.
+    """Fetch Angor projects using the best available strategy.
     
-    Strategies:
-    1. Try fetching from Angor Indexer API (PRIMARY - gets ALL projects)
-    2. Try fetching real projects from Nostr relays (SECONDARY)
-    3. Return empty list if both fail (NO DEMO FALLBACK - we have real data now!)
-    
-    Returns:
-        List of normalized project dictionaries
+    The strategies are attempted in order:
+    1. Angor Indexer API (live blockchain-backed data)
+    2. Nostr relays (requires nostr-sdk to be installed)
+    3. Local demo data (offline fallback so the dashboard still works)
     """
     logging.info("🚀 get_angor_projects() called - starting data fetch strategies")
     
-    # Strategy 1: Try Angor Indexer API first (THIS GETS ALL PROJECTS!)
+    # Strategy 1: Angor Indexer API
     indexer_projects = await fetch_from_angor_indexer()
     if indexer_projects:
-        logging.info(f"✅ Fetched {len(indexer_projects)} projects from Angor Indexer API")
+        logging.info("✅ Returning projects from Angor Indexer API")
         return indexer_projects
     
-    # Strategy 2: Try to fetch from Nostr
+    # Strategy 2: Nostr relays (optional)
     if NOSTR_AVAILABLE:
         try:
             projects = await get_angor_projects_with_stats()
             if projects:
-                logging.info(f"✅ Fetched {len(projects)} real Angor projects from Nostr")
+                logging.info("✅ Returning projects from Nostr relays")
                 return projects
-        except Exception as e:
-            logging.warning(f"Failed to fetch from Nostr: {e}")
+        except Exception as exc:
+            logging.warning("Failed to fetch from Nostr relays: %s", exc)
     
-    # No demo fallback - if both real sources fail, return empty list
-    logging.error("❌ Failed to fetch from Angor Indexer AND Nostr - no projects available")
+    # Strategy 3: Demo data fallback
+    demo_projects = load_demo_projects()
+    if demo_projects:
+        logging.info("⚠️ Falling back to bundled demo projects")
+        return demo_projects
+    
+    logging.error("❌ No crowdfunding projects available from any source")
     return []
 
 
@@ -188,17 +190,36 @@ def load_demo_projects() -> List[Dict[str, Any]]:
             projects = data.get("projects", [])
             
             # Normalize to our schema
-            return [
-                {
-                    "id": f"angor_demo_{p['id']}",
-                    "title": p["title"],
-                    "amount_target": p["target_btc"],
-                    "amount_raised": p["raised_btc"],
-                    "created_at": datetime.fromisoformat(p["created_at"]),
-                    "source": "demo"
-                }
-                for p in projects
-            ]
+            normalized_projects = []
+            for project in projects:
+                try:
+                    target_btc = float(project.get("target_btc", 0))
+                    raised_btc = float(project.get("raised_btc", 0))
+                    created_at = parse_angor_date(project.get("created_at"))
+                    
+                    normalized_projects.append(
+                        {
+                            "id": f"angor_demo_{project.get('id')}",
+                            "title": project.get("title", "Demo Project"),
+                            "amount_target": int(target_btc * 100_000_000),
+                            "amount_raised": int(raised_btc * 100_000_000),
+                            "amount_spent": 0,
+                            "amount_spent_btc": 0.0,
+                            "amount_penalties": 0,
+                            "investor_count": project.get("investor_count", 0),
+                            "created_at": created_at,
+                            "source": "demo",
+                            "founder_key": "",
+                            "nostr_event_id": "",
+                            "project_identifier": str(project.get("id", "")),
+                            "transaction_id": "",
+                            "created_block": 0
+                        }
+                    )
+                except Exception as exc:
+                    logging.warning("Skipping malformed demo project: %s", exc)
+            
+            return normalized_projects
     except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
         print(f"Error loading demo projects: {e}")
         return []

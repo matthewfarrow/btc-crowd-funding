@@ -1,5 +1,8 @@
 # Questions to Ask ChatGPT for System Improvements
 
+> **Context:** These prompts were written for the previous BTCPay + Angor version of the project.  
+> Revise them if you want guidance for the current Angor-only dashboard.
+
 ## 📋 Copy this entire message to ChatGPT:
 
 ---

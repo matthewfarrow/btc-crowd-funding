@@ -1,5 +1,8 @@
 # BTC Crowdfund Analytics - Project Status & Integration Roadmap
 
+> **Note:** Legacy status report focused on the BTCPay + Angor hybrid MVP.  
+> The codebase now ships a streamlined Angor-only dashboard. Refer to `README.md` for the up-to-date scope.
+
 **Date:** October 11, 2025  
 **Status:** ✅ MVP Complete - Demo Mode Functional  
 **Next Phase:** Real Service Integration

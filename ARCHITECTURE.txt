@@ -1,5 +1,8 @@
 # System Architecture Overview
 
+> **Note:** The flow below reflects the original multi-page BTCPay dashboard.  
+> The live codebase now exposes a single Angor analytics page (`/`) and API endpoints described in the README.
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                     BTC CROWDFUND ANALYTICS                              │

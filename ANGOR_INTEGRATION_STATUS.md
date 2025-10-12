@@ -1,5 +1,8 @@
 # 🎯 Angor Real Data Integration - Status & Next Steps
 
+> **Note:** The implementation details below correspond to the earlier dual-source dashboard.  
+> The current application already ships with an Angor-first adapter and a lightweight UI. Refer to `README.md` for its behaviour.
+
 ## ✅ What We Built
 
 ### 1. **Real Angor/Nostr Integration** (`app/angor_nostr_client.py`)
