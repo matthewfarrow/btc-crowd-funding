@@ -1,14 +1,33 @@
 # BTC Crowdfund Analytics
 
-In process of building MVP for Bitcoin crowdfunding analytics. Displays dashboard analytics from BTCPay Server and pulls data on all projects that have been funded via ango invoices with Angor
+**Real-time Bitcoin crowdfunding analytics dashboard** that displays data from:
+1. **Angor Protocol** - Decentralized Bitcoin crowdfunding via Nostr (PRIMARY)
+2. **BTCPay Server** - Bitcoin payment processor for merchants (SECONDARY)
+
+View capital raised, project trends, and crowdfunding analytics over time.
+
+## 🎯 What This Does
+
+### Angor Integration (Crowdfunding)
+- ✅ Connects to Angor Nostr relays (`wss://relay.angor.io`)
+- ✅ Fetches real crowdfunding projects using NIP-3030
+- ✅ Shows target amounts, stages, and project data
+- ✅ Visualizes crowdfunding trends over time
+- **Access:** http://localhost:8000/?source=angor
+
+### BTCPay Integration (Payment Processing)
+- ✅ Connects to BTCPay Server Greenfield API
+- ✅ Fetches invoices and payment data
+- ✅ Real-time webhook updates
+- **Access:** http://localhost:8000/
 
 ## Features
 
+- **Angor/Nostr Integration**: Fetch real Bitcoin crowdfunding projects from Nostr relays
 - **BTCPay Server Integration**: Fetch and cache invoices via Greenfield API
 - **Webhook Support**: Receive real-time invoice updates with HMAC-SHA256 verification
 - **Analytics Dashboard**: KPI cards, time-series charts, and status distribution
-- **Angor Adapter**: View decentralized crowdfunding projects with demo fallback
-- **Demo Mode**: Runs with synthetic data when BTCPay is not configured
+- **Demo Mode Fallback**: Runs with synthetic data when relays are unavailable
 - **SQLite Caching**: Fast local persistence with SQLModel
 - **Server-Rendered**: Clean Jinja2 templates with Chart.js visualizations
 
@@ -20,6 +39,7 @@ In process of building MVP for Bitcoin crowdfunding analytics. Displays dashboar
 - **Jinja2** - Server-side templates
 - **Chart.js** - Interactive charts
 - **httpx** - HTTP client
+- **nostr-sdk** - Nostr protocol client
 - **pytest** - Unit tests
 
 ## Project Structure
@@ -28,25 +48,26 @@ In process of building MVP for Bitcoin crowdfunding analytics. Displays dashboar
 btc-crowd-funding/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py              # FastAPI app setup
-│   ├── config.py            # Environment configuration
-│   ├── models.py            # SQLModel database schemas
-│   ├── btcpay_client.py     # BTCPay Greenfield API wrapper
-│   ├── webhook.py           # Webhook handler with HMAC verification
-│   ├── repo.py              # Database CRUD operations
-│   ├── analytics.py         # Aggregation and analytics functions
-│   ├── angor_adapter.py     # Angor integration with demo fallback
-│   ├── views.py             # Web routes and controllers
-│   └── seed_demo.py         # Demo data seeder
+│   ├── main.py                 # FastAPI app setup
+│   ├── config.py               # Environment configuration
+│   ├── models.py               # SQLModel database schemas
+│   ├── btcpay_client.py        # BTCPay Greenfield API wrapper
+│   ├── angor_nostr_client.py   # Angor/Nostr protocol client (NEW!)
+│   ├── angor_adapter.py        # Angor integration with Nostr + demo fallback
+│   ├── webhook.py              # Webhook handler with HMAC verification
+│   ├── repo.py                 # Database CRUD operations
+│   ├── analytics.py            # Aggregation and analytics functions
+│   ├── views.py                # Web routes and controllers
+│   └── seed_demo.py            # Demo data seeder
 ├── templates/
-│   ├── base.html            # Base template
-│   ├── index.html           # Dashboard page
-│   ├── settings.html        # Settings page
-│   └── logs.html            # Webhook logs page
+│   ├── base.html               # Base template
+│   ├── index.html              # Dashboard page
+│   ├── settings.html           # Settings page
+│   └── logs.html               # Webhook logs page
 ├── static/
-│   └── style.css            # Application styles
+│   └── style.css               # Application styles
 ├── data/
-│   └── angor_demo.json      # Demo Angor projects
+│   └── angor_demo.json         # Demo Angor projects (fallback)
 ├── tests/
 │   └── test_app.py          # Unit tests
 ├── requirements.txt
