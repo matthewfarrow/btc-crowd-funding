@@ -166,3 +166,78 @@ async def get_angor_projects_with_stats() -> List[Dict[str, Any]]:
     
     logger.info(f"Returning {len(projects)} Angor projects with stats")
     return projects
+
+
+async def fetch_project_metadata_by_event_id(event_id: str) -> Dict[str, Any] | None:
+    """
+    Fetch project metadata from Nostr using the event ID.
+    
+    This queries Nostr relays for the NIP-3030 (Kind 3030) event that contains
+    the project information (name, description, funding goals, etc.).
+    
+    Args:
+        event_id: The Nostr event ID (hex string) from the Angor indexer
+        
+    Returns:
+        Dictionary with project metadata (name, description, etc.) or None if not found
+    """
+    if not event_id:
+        logger.warning("No event_id provided to fetch_project_metadata_by_event_id")
+        return None
+        
+    try:
+        # Initialize Nostr client
+        client = Client()
+        
+        # Add Angor relays
+        for relay in ANGOR_RELAYS:
+            try:
+                await client.add_relay(relay)
+            except Exception as e:
+                logger.debug(f"Failed to add relay {relay}: {e}")
+        
+        # Connect to relays
+        await client.connect()
+        
+        # Create filter for specific event ID
+        from nostr_sdk import EventId
+        event_filter = Filter().id(EventId.from_hex(event_id))
+        
+        # Fetch the event
+        logger.info(f"Fetching Nostr event {event_id[:16]}... for project metadata")
+        events = await client.get_events_of([event_filter], timeout=10)
+        
+        if not events:
+            logger.warning(f"No event found for ID {event_id[:16]}...")
+            return None
+            
+        # Parse the event content (should be ProjectInfo JSON)
+        event = list(events)[0]
+        content = event.content()
+        
+        try:
+            project_info = json.loads(content)
+            
+            # Extract project name and description
+            metadata = {
+                "name": project_info.get("ProjectIdentifier", "")[:12] + "...",  # Default to ID prefix
+                "description": "",
+                "target_amount": project_info.get("TargetAmount", 0) / 100_000_000,  # sats to BTC
+                "founder_key": project_info.get("FounderKey", ""),
+                "nostr_pubkey": project_info.get("NostrPubKey", ""),
+                "start_date": project_info.get("StartDate", ""),
+                "penalty_days": project_info.get("PenaltyDays", 0),
+                "stages": len(project_info.get("Stages", []))
+            }
+            
+            logger.info(f"Successfully fetched metadata for event {event_id[:16]}...")
+            return metadata
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse project info JSON: {e}")
+            return None
+            
+    except Exception as e:
+        logger.error(f"Error fetching project metadata from Nostr: {e}")
+        return None
+

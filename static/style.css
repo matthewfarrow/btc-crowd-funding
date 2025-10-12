@@ -1,14 +1,68 @@
-/* BTC Crowdfund Analytics Styles */
+/* ═══════════════════════════════════════════════════════════════════════════
+   ⚡ CITADEL ⚡
+   Cryptographic Investment Tracking & Analytics for Decentralized Enterprise Ledgers
+   
+   "Privacy is necessary for an open society in the electronic age" 
+   - A Cypherpunk's Manifesto, Eric Hughes, 1993
+   
+   "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
+   - Bitcoin Genesis Block, Satoshi Nakamoto
+   
+   Inspired by:
+   - The Crypto Anarchist Manifesto (Timothy C. May, 1988)
+     https://activism.net/cypherpunk/crypto-anarchy.html
+   - A Cypherpunk's Manifesto (Eric Hughes, 1993)
+     https://www.activism.net/cypherpunk/manifesto.html
+   - Bitcoin Whitepaper (Satoshi Nakamoto, 2008)
+     https://bitcoin.org/bitcoin.pdf
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Cinzel:wght@400;700&family=Courier+Prime:wght@400;700&display=swap');
 
 :root {
-    --primary: #f7931a;
-    --secondary: #4a5568;
-    --success: #48bb78;
-    --error: #f56565;
-    --bg: #f7fafc;
-    --card-bg: #ffffff;
-    --text: #2d3748;
-    --border: #e2e8f0;
+    /* Cathedral Stained Glass Palette - Bitcoin Inspired */
+    --bitcoin-gold: #f7931a;
+    --bitcoin-amber: #ff9f1c;
+    --cathedral-crimson: #8b0000;
+    --cathedral-azure: #1e3a8a;
+    --cathedral-violet: #4c1d95;
+    --cathedral-emerald: #065f46;
+    --stained-glass-orange: rgba(247, 147, 26, 0.15);
+    --stained-glass-blue: rgba(30, 58, 138, 0.15);
+    --stained-glass-red: rgba(139, 0, 0, 0.12);
+    
+    /* 1980s Cypherpunk Terminal Aesthetic */
+    --cypherpunk-green: #00ff41;
+    --terminal-amber: #ffb000;
+    --terminal-phosphor: #33ff33;
+    --matrix-green: #008f11;
+    
+    /* Background: Dark stone cathedral */
+    --background-cathedral: #0a0a0a;
+    --surface-stone: #1a1410;
+    --surface-stone-light: #2d2520;
+    --gothic-arch: #3d332d;
+    
+    /* Text colors */
+    --text-illuminated: #ffd700;
+    --text-scripture: #e8d7c3;
+    --text-inscription: #a89f91;
+    --text-shadow: #5a4a3a;
+    
+    /* Mystical borders */
+    --border-gold: #d4af37;
+    --border-silver: #c0c0c0;
+    --glow-cyan: #00ffff;
+    
+    /* Legacy variable mappings for compatibility */
+    --primary: var(--bitcoin-gold);
+    --secondary: var(--text-inscription);
+    --success: var(--cathedral-emerald);
+    --error: var(--cathedral-crimson);
+    --bg: var(--background-cathedral);
+    --card-bg: var(--surface-stone);
+    --text: var(--text-scripture);
+    --border: var(--border-gold);
 }
 
 * {
@@ -18,97 +72,241 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
+    font-family: 'Courier Prime', 'Courier New', monospace;
+    background: 
+        linear-gradient(180deg, 
+            var(--background-cathedral) 0%,
+            var(--surface-stone) 50%,
+            var(--background-cathedral) 100%
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 2px,
+            rgba(247, 147, 26, 0.03) 2px,
+            rgba(247, 147, 26, 0.03) 4px
+        );
+    color: var(--text-scripture);
+    line-height: 1.8;
+    min-height: 100vh;
+    position: relative;
+    background-size: 100% 100%, 100% 4px;
+}
+
+/* Retro terminal scanline effect */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    z-index: 1000;
+    animation: scanline 8s linear infinite;
+}
+
+@keyframes scanline {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(10px); }
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 2rem;
+    position: relative;
+    z-index: 1;
 }
 
-/* Header */
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEADER - Cathedral Arch with Cypherpunk Inscriptions
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 header {
-    background: var(--card-bg);
-    border-bottom: 2px solid var(--primary);
-    padding: 1rem 0;
-    margin-bottom: 2rem;
+    background: linear-gradient(
+        180deg,
+        var(--surface-stone) 0%,
+        var(--gothic-arch) 100%
+    );
+    border-bottom: 3px solid var(--border-gold);
+    border-top: 1px solid var(--bitcoin-gold);
+    padding: 2rem 0;
+    margin-bottom: 3rem;
+    box-shadow: 
+        0 4px 20px rgba(247, 147, 26, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+header::before {
+    content: "⚡";
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    font-size: 2.5rem;
+    color: var(--bitcoin-gold);
+    text-shadow: 0 0 20px var(--bitcoin-amber);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
 }
 
 header h1 {
-    display: inline-block;
-    font-size: 1.5rem;
-    color: var(--primary);
-    margin-right: 2rem;
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-illuminated);
+    text-align: center;
+    letter-spacing: 0.3rem;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    text-shadow: 
+        0 0 10px var(--bitcoin-gold),
+        0 0 20px var(--bitcoin-amber),
+        2px 2px 4px rgba(0, 0, 0, 0.8);
+    animation: text-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes text-shimmer {
+    0%, 100% { text-shadow: 
+        0 0 10px var(--bitcoin-gold),
+        0 0 20px var(--bitcoin-amber),
+        2px 2px 4px rgba(0, 0, 0, 0.8); }
+    50% { text-shadow: 
+        0 0 20px var(--bitcoin-gold),
+        0 0 40px var(--bitcoin-amber),
+        0 0 60px rgba(247, 147, 26, 0.5),
+        2px 2px 4px rgba(0, 0, 0, 0.8); }
+}
+
+.subtitle {
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    text-align: center;
+    color: var(--cypherpunk-green);
+    text-shadow: 0 0 10px var(--matrix-green);
+    letter-spacing: 0.1rem;
+    margin-bottom: 1rem;
 }
 
 nav {
-    display: inline-block;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-gold);
 }
 
 nav a {
-    color: var(--text);
+    font-family: 'VT323', monospace;
+    font-size: 1.3rem;
+    color: var(--terminal-amber);
     text-decoration: none;
-    padding: 0.5rem 1rem;
-    margin: 0 0.25rem;
-    border-radius: 4px;
-    transition: background 0.2s;
+    padding: 0.5rem 1.5rem;
+    border: 2px solid var(--terminal-amber);
+    background: rgba(255, 176, 0, 0.1);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+nav a::before {
+    content: ">";
+    position: absolute;
+    left: -20px;
+    transition: left 0.3s ease;
+}
+
+nav a:hover::before {
+    left: 10px;
 }
 
 nav a:hover {
-    background: var(--bg);
+    background: var(--terminal-amber);
+    color: var(--background-cathedral);
+    box-shadow: 0 0 20px var(--terminal-amber);
+    transform: translateY(-2px);
+}
+
+nav a.active {
+    background: var(--bitcoin-gold);
+    color: var(--background-cathedral);
+    border-color: var(--bitcoin-gold);
+    box-shadow: 0 0 15px var(--bitcoin-amber);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MAIN CONTENT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+main {
+    min-height: calc(100vh - 400px);
 }
 
 /* Demo Banner */
 .demo-banner {
-    background: #fff3cd;
-    border: 1px solid #ffc107;
+    background: linear-gradient(135deg, var(--cathedral-crimson), var(--cathedral-violet));
+    border: 2px solid var(--border-gold);
     padding: 1rem;
     margin-bottom: 2rem;
     border-radius: 4px;
     text-align: center;
-}
-
-/* Main Content */
-main {
-    min-height: calc(100vh - 200px);
+    color: var(--text-illuminated);
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    box-shadow: 0 0 20px rgba(247, 147, 26, 0.3);
 }
 
 /* Buttons */
 .btn {
     display: inline-block;
     padding: 0.5rem 1rem;
-    border: 1px solid var(--border);
+    border: 2px solid var(--border-gold);
     border-radius: 4px;
-    background: var(--card-bg);
-    color: var(--text);
+    background: var(--surface-stone);
+    color: var(--text-scripture);
     text-decoration: none;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     font-size: 0.9rem;
+    font-family: 'Courier Prime', monospace;
 }
 
 .btn:hover {
-    background: var(--bg);
+    background: var(--surface-stone-light);
+    box-shadow: 0 0 15px rgba(247, 147, 26, 0.3);
+    transform: translateY(-2px);
 }
 
 .btn-primary {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
+    background: var(--bitcoin-gold);
+    color: var(--background-cathedral);
+    border-color: var(--bitcoin-gold);
 }
 
 .btn-primary:hover {
-    opacity: 0.9;
+    box-shadow: 0 0 20px var(--bitcoin-amber);
 }
 
 .btn.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
+    background: var(--bitcoin-gold);
+    color: var(--background-cathedral);
+    border-color: var(--bitcoin-gold);
+    box-shadow: 0 0 15px var(--bitcoin-amber);
 }
 
 /* Dashboard */
@@ -130,40 +328,91 @@ main {
     gap: 0.5rem;
 }
 
-/* KPI Grid */
+/* ═══════════════════════════════════════════════════════════════════════════
+   KPI CARDS - Illuminated Manuscripts
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
 }
 
 .kpi-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
+    background: linear-gradient(
+        135deg,
+        var(--surface-stone) 0%,
+        var(--surface-stone-light) 100%
+    );
+    padding: 2rem;
     border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 2px solid var(--border-gold);
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 215, 0, 0.2),
+        0 0 30px rgba(247, 147, 26, 0.15);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.kpi-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle at top right,
+        var(--stained-glass-orange),
+        transparent 60%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.kpi-card:hover::before {
+    opacity: 1;
+}
+
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.7),
+        0 0 40px var(--bitcoin-amber);
+    border-color: var(--bitcoin-gold);
 }
 
 .kpi-card h3 {
-    font-size: 0.875rem;
-    color: var(--secondary);
-    margin-bottom: 0.5rem;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
     text-transform: uppercase;
-    font-weight: 600;
+    letter-spacing: 0.15rem;
+    color: var(--terminal-amber);
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px rgba(255, 176, 0, 0.5);
 }
 
 .kpi-value {
-    font-size: 1.75rem;
+    font-family: 'VT323', monospace;
+    font-size: 2.5rem;
     font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 0.25rem;
+    color: var(--text-illuminated);
+    text-shadow: 
+        0 0 15px var(--bitcoin-gold),
+        0 0 30px var(--bitcoin-amber);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.1rem;
 }
 
 .kpi-subvalue {
-    font-size: 0.875rem;
-    color: var(--secondary);
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.85rem;
+    color: var(--text-inscription);
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
 }
 
 /* Status Badges */
@@ -174,80 +423,130 @@ main {
     font-size: 0.75rem;
     font-weight: 600;
     margin-right: 0.5rem;
+    font-family: 'VT323', monospace;
 }
 
 .status-settled {
-    background: #c6f6d5;
-    color: #22543d;
+    background: var(--cathedral-emerald);
+    color: var(--text-illuminated);
+    border: 1px solid var(--cypherpunk-green);
 }
 
 .status-expired {
-    background: #fed7d7;
-    color: #742a2a;
+    background: var(--cathedral-crimson);
+    color: var(--text-illuminated);
+    border: 1px solid #ff0000;
 }
 
 .status-pending {
-    background: #feebc8;
-    color: #7c2d12;
+    background: var(--cathedral-violet);
+    color: var(--text-illuminated);
+    border: 1px solid var(--terminal-amber);
 }
 
 /* Charts */
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 1.5rem;
+    gap: 2rem;
     margin-bottom: 2rem;
 }
 
 .chart-container {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
+    background: var(--surface-stone);
+    border: 2px solid var(--border-gold);
     border-radius: 8px;
     padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(247, 147, 26, 0.15);
 }
 
 .chart-container h3 {
     margin-bottom: 1rem;
-    color: var(--secondary);
+    color: var(--text-illuminated);
+    font-family: 'Cinzel', serif;
+    text-shadow: 0 0 10px var(--bitcoin-gold);
 }
 
 .chart-container canvas {
     max-height: 300px;
 }
 
-/* Projects List */
+/* ═══════════════════════════════════════════════════════════════════════════
+   PROJECT CARDS - Sacred Relics
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .projects-list {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
+    background: var(--surface-stone);
+    border: 2px solid var(--border-gold);
     border-radius: 8px;
     padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .project-card {
-    border-bottom: 1px solid var(--border);
-    padding: 1rem 0;
+    background: linear-gradient(
+        145deg,
+        var(--surface-stone) 0%,
+        var(--gothic-arch) 100%
+    );
+    padding: 1.5rem;
+    border-radius: 6px;
+    border: 2px solid var(--cathedral-azure);
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(30, 58, 138, 0.3);
+    position: relative;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    margin-bottom: 1rem;
 }
 
-.project-card:last-child {
-    border-bottom: none;
+.project-card::before {
+    content: "⚡";
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    color: var(--bitcoin-gold);
+    opacity: 0.3;
+}
+
+.project-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--bitcoin-gold);
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.8),
+        0 0 30px rgba(247, 147, 26, 0.3);
 }
 
 .project-card h4 {
-    margin-bottom: 0.5rem;
+    font-family: 'VT323', monospace;
+    font-size: 1.5rem;
+    color: var(--cypherpunk-green);
+    margin-bottom: 1rem;
+    text-shadow: 0 0 10px var(--matrix-green);
+    letter-spacing: 0.05rem;
 }
 
 .progress-bar {
-    height: 8px;
-    background: var(--border);
+    height: 10px;
+    background: rgba(0, 0, 0, 0.5);
     border-radius: 4px;
     overflow: hidden;
     margin: 0.5rem 0;
+    border: 1px solid var(--border-gold);
 }
 
 .progress-fill {
     height: 100%;
-    background: var(--primary);
+    background: linear-gradient(
+        90deg,
+        var(--bitcoin-gold),
+        var(--bitcoin-amber)
+    );
+    box-shadow: 0 0 10px var(--bitcoin-gold);
     transition: width 0.3s;
 }
 
@@ -255,21 +554,30 @@ main {
     display: flex;
     gap: 1rem;
     font-size: 0.875rem;
-    color: var(--secondary);
+    color: var(--text-scripture);
+    font-family: 'Courier Prime', monospace;
 }
 
 .source-badge {
-    background: var(--bg);
-    padding: 0.125rem 0.5rem;
+    background: var(--gothic-arch);
+    padding: 0.25rem 0.75rem;
     border-radius: 4px;
     font-weight: 600;
+    border: 1px solid var(--border-gold);
+    font-family: 'VT323', monospace;
+    color: var(--terminal-amber);
 }
 
-/* Settings */
+/* ═══════════════════════════════════════════════════════════════════════════
+   SETTINGS & CONFIGURATION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .settings-page {
-    background: var(--card-bg);
+    background: var(--surface-stone);
     border-radius: 8px;
     padding: 2rem;
+    border: 2px solid var(--border-gold);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .settings-section {
@@ -278,12 +586,14 @@ main {
 
 .settings-section h3 {
     margin-bottom: 1rem;
-    color: var(--secondary);
+    color: var(--text-illuminated);
+    font-family: 'Cinzel', serif;
+    text-shadow: 0 0 10px var(--bitcoin-gold);
 }
 
 .config-display {
-    background: var(--bg);
-    border: 1px solid var(--border);
+    background: var(--gothic-arch);
+    border: 2px solid var(--border-gold);
     border-radius: 4px;
     padding: 1rem;
 }
@@ -291,7 +601,7 @@ main {
 .config-item {
     display: flex;
     padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-silver);
 }
 
 .config-item:last-child {
@@ -301,18 +611,23 @@ main {
 .config-item label {
     min-width: 150px;
     font-weight: 600;
+    color: var(--terminal-amber);
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
 }
 
 .config-item code {
-    background: white;
+    background: rgba(0, 0, 0, 0.5);
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
     font-size: 0.875rem;
+    color: var(--cypherpunk-green);
+    font-family: 'Courier Prime', monospace;
 }
 
 .webhook-url {
-    background: var(--bg);
-    border: 1px solid var(--border);
+    background: var(--gothic-arch);
+    border: 2px solid var(--border-gold);
     border-radius: 4px;
     padding: 1rem;
     margin: 1rem 0;
@@ -320,24 +635,30 @@ main {
 
 .webhook-url code {
     font-size: 1rem;
-    color: var(--primary);
+    color: var(--bitcoin-gold);
+    text-shadow: 0 0 10px rgba(247, 147, 26, 0.5);
 }
 
 .info-box {
-    background: #ebf8ff;
-    border: 1px solid #4299e1;
+    background: rgba(30, 58, 138, 0.2);
+    border: 2px solid var(--cathedral-azure);
     border-radius: 4px;
     padding: 1rem;
     margin: 1rem 0;
+    color: var(--text-scripture);
 }
 
 .note {
     font-size: 0.875rem;
-    color: var(--secondary);
+    color: var(--text-inscription);
     font-style: italic;
+    font-family: 'Courier Prime', monospace;
 }
 
-/* Logs */
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOGS & TABLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .logs-table-container {
     overflow-x: auto;
     margin: 1rem 0;
@@ -345,8 +666,8 @@ main {
 
 .logs-table {
     width: 100%;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
+    background: var(--surface-stone);
+    border: 2px solid var(--border-gold);
     border-radius: 8px;
     border-collapse: collapse;
 }
@@ -355,13 +676,17 @@ main {
 .logs-table td {
     padding: 0.75rem;
     text-align: left;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-gold);
+    font-family: 'Courier Prime', monospace;
 }
 
 .logs-table th {
-    background: var(--bg);
+    background: var(--gothic-arch);
     font-weight: 600;
-    color: var(--secondary);
+    color: var(--text-illuminated);
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
 }
 
 .logs-table tr:last-child td {
@@ -369,19 +694,22 @@ main {
 }
 
 .logs-table tr.verified {
-    background: #f0fff4;
+    background: rgba(6, 95, 70, 0.2);
 }
 
 .logs-table tr.unverified {
-    background: #fff5f5;
+    background: rgba(139, 0, 0, 0.2);
 }
 
 .event-badge {
-    background: var(--bg);
+    background: var(--gothic-arch);
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
     font-size: 0.875rem;
     font-weight: 600;
+    border: 1px solid var(--border-gold);
+    color: var(--terminal-amber);
+    font-family: 'VT323', monospace;
 }
 
 .badge {
@@ -389,44 +717,119 @@ main {
     border-radius: 4px;
     font-size: 0.75rem;
     font-weight: 600;
+    font-family: 'VT323', monospace;
 }
 
 .badge-success {
-    background: #c6f6d5;
-    color: #22543d;
+    background: var(--cathedral-emerald);
+    color: var(--text-illuminated);
+    border: 1px solid var(--cypherpunk-green);
 }
 
 .badge-error {
-    background: #fed7d7;
-    color: #742a2a;
+    background: var(--cathedral-crimson);
+    color: var(--text-illuminated);
+    border: 1px solid #ff0000;
 }
 
 .signature-short,
 .payload-preview {
-    font-family: 'Courier New', monospace;
+    font-family: 'Courier Prime', monospace;
     font-size: 0.75rem;
-    color: var(--secondary);
+    color: var(--text-inscription);
 }
 
 .no-data {
     text-align: center;
-    color: var(--secondary);
+    color: var(--text-inscription);
     font-style: italic;
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
 }
 
-/* Footer */
+/* ═══════════════════════════════════════════════════════════════════════════
+   FOOTER - Cypherpunk Citations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 footer {
-    background: var(--card-bg);
-    border-top: 1px solid var(--border);
-    padding: 1rem 0;
+    background: var(--surface-stone);
+    border-top: 3px solid var(--border-gold);
+    padding: 2rem 0;
     margin-top: 3rem;
     text-align: center;
-    color: var(--secondary);
+    color: var(--text-scripture);
     font-size: 0.875rem;
 }
 
-/* Responsive */
+.citations {
+    max-width: 900px;
+    margin: 0 auto 2rem;
+}
+
+.citations h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.5rem;
+    color: var(--text-illuminated);
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 15px var(--bitcoin-gold);
+}
+
+.citation-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: left;
+}
+
+.citation-links a {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.9rem;
+    color: var(--terminal-amber);
+    text-decoration: none;
+    padding: 0.75rem;
+    border-left: 3px solid var(--cathedral-azure);
+    background: rgba(30, 58, 138, 0.1);
+    transition: all 0.3s ease;
+    display: block;
+}
+
+.citation-links a::before {
+    content: "📜 ";
+    margin-right: 0.5rem;
+}
+
+.citation-links a:hover {
+    background: rgba(247, 147, 26, 0.2);
+    border-left-color: var(--bitcoin-gold);
+    padding-left: 1.5rem;
+    box-shadow: 0 0 15px rgba(247, 147, 26, 0.3);
+}
+
+.footer-quote {
+    font-family: 'VT323', monospace;
+    font-size: 1.1rem;
+    color: var(--cypherpunk-green);
+    text-shadow: 0 0 10px var(--matrix-green);
+    margin-top: 2rem;
+    padding: 1rem;
+    border: 1px dashed var(--cypherpunk-green);
+    max-width: 700px;
+    margin: 2rem auto 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 @media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+    
     .charts-grid {
         grid-template-columns: 1fr;
     }
@@ -438,5 +841,10 @@ footer {
     
     .source-toggle {
         flex-direction: column;
+    }
+    
+    nav {
+        flex-direction: column;
+        gap: 1rem;
     }
 }
