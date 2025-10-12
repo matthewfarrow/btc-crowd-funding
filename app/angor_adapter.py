@@ -1,32 +1,51 @@
-"""Angor adapter with demo fallback."""
+"""Angor adapter with Nostr integration and demo fallback."""
 
 import json
 import os
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 import httpx
+import logging
+
+# Import the Nostr client
+try:
+    from app.angor_nostr_client import get_angor_projects_with_stats
+    NOSTR_AVAILABLE = True
+except ImportError:
+    NOSTR_AVAILABLE = False
+    logging.warning("Nostr SDK not available, falling back to demo data")
 
 
 async def get_angor_projects() -> List[Dict[str, Any]]:
     """Fetch Angor projects using multi-strategy approach.
     
     Strategies:
-    1. Load demo JSON from repo
-    2. Try fetching from hub.angor.io (if CORS allows)
-    3. Return normalized records
+    1. Try fetching real projects from Nostr relays (PRIMARY)
+    2. Load demo JSON from repo (FALLBACK)
+    3. Try fetching from hub.angor.io (FALLBACK)
     
     Returns:
         List of normalized project dictionaries
     """
-    # Strategy 1: Load demo data
+    # Strategy 1: Try to fetch REAL data from Nostr
+    if NOSTR_AVAILABLE:
+        try:
+            projects = await get_angor_projects_with_stats()
+            if projects:
+                logging.info(f"✅ Fetched {len(projects)} real Angor projects from Nostr")
+                return projects
+        except Exception as e:
+            logging.warning(f"Failed to fetch from Nostr: {e}, falling back to demo data")
+    
+    # Strategy 2: Load demo data as fallback
     projects = load_demo_projects()
     
-    # Strategy 2: Try to fetch from Angor hub (optional)
-    # Note: This may fail due to CORS in browser, but works server-side
+    # Strategy 3: Try to fetch from Angor hub (optional)
     hub_projects = await fetch_angor_hub()
     if hub_projects:
         projects.extend(hub_projects)
     
+    logging.info(f"Using {len(projects)} demo/fallback projects")
     return projects
 
 
