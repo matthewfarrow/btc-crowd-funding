@@ -2,8 +2,8 @@
 
 import hashlib
 import logging
-from datetime import datetime
-from typing import List, Dict, Any
+from datetime import datetime, timedelta
+from typing import List, Dict, Any, Optional
 import httpx
 
 
@@ -12,17 +12,37 @@ logger = logging.getLogger(__name__)
 GEYSER_API_URL = "https://api.geyser.fund/graphql"
 GEYSER_WEB_URL = "https://geyser.fund"
 
+# Simple in-memory cache with 5-minute TTL
+_geyser_cache: Optional[List[Dict[str, Any]]] = None
+_cache_timestamp: Optional[datetime] = None
+CACHE_TTL_SECONDS = 300  # 5 minutes
+
 
 async def fetch_geyser_projects() -> List[Dict[str, Any]]:
     """Fetch all public projects from Geyser Fund."""
+    global _geyser_cache, _cache_timestamp
+    
+    # Check cache first
+    if _geyser_cache and _cache_timestamp:
+        age = (datetime.now() - _cache_timestamp).total_seconds()
+        if age < CACHE_TTL_SECONDS:
+            logger.info(f"📦 Returning cached Geyser data (age: {age:.1f}s, {len(_geyser_cache)} projects)")
+            return _geyser_cache
+    
     logger.info("🌊 Fetching projects from Geyser Fund...")
     
     try:
         projects = await fetch_via_graphql()
         logger.info(f"✅ Fetched {len(projects)} projects from Geyser")
+        _geyser_cache = projects
+        _cache_timestamp = datetime.now()
         return projects
     except Exception as e:
         logger.error(f"Failed to fetch from Geyser: {e}")
+        # Return cached data even if expired, better than nothing
+        if _geyser_cache:
+            logger.info(f"⚠️  Returning expired cache ({len(_geyser_cache)} projects)")
+            return _geyser_cache
         return []
 
 
@@ -30,12 +50,13 @@ async def fetch_via_graphql() -> List[Dict[str, Any]]:
     """Fetch projects using Geyser's GraphQL API."""
     projects = []
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=90.0) as client:
+        # Fetch up to 200 projects - balance between completeness and speed
         query = {
             "query": """
             query {
                 projectsGet(input: {
-                    pagination: { take: 50 },
+                    pagination: { take: 200 },
                     where: {}
                 }) {
                     projects {

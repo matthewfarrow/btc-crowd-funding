@@ -3,7 +3,7 @@
 import json
 import os
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import httpx
 import logging
 
@@ -19,6 +19,11 @@ except ImportError:
 ANGOR_INDEXER_MAINNET = "https://btc.indexer.angor.io/api/query/Angor/projects"
 ANGOR_INDEXER_TESTNET = "https://tbtc.indexer.angor.io/api/query/Angor/projects"
 
+# Simple in-memory cache with 5-minute TTL
+_angor_cache: Optional[Dict[str, Any]] = None
+_cache_timestamp: Optional[datetime] = None
+CACHE_TTL_SECONDS = 300  # 5 minutes
+
 
 async def get_angor_projects() -> List[Dict[str, Any]]:
     """Fetch Angor projects using the best available strategy.
@@ -28,12 +33,23 @@ async def get_angor_projects() -> List[Dict[str, Any]]:
     2. Nostr relays (requires nostr-sdk to be installed)
     3. Local demo data (offline fallback so the dashboard still works)
     """
-    logging.info("🚀 get_angor_projects() called - starting data fetch strategies")
+    global _angor_cache, _cache_timestamp
+    
+    # Check cache first
+    if _angor_cache and _cache_timestamp:
+        age = (datetime.now() - _cache_timestamp).total_seconds()
+        if age < CACHE_TTL_SECONDS:
+            logging.info(f"� Returning cached Angor data (age: {age:.1f}s)")
+            return _angor_cache
+    
+    logging.info("�🚀 get_angor_projects() called - starting data fetch strategies")
     
     # Strategy 1: Angor Indexer API
     indexer_projects = await fetch_from_angor_indexer()
     if indexer_projects:
         logging.info("✅ Returning projects from Angor Indexer API")
+        _angor_cache = indexer_projects
+        _cache_timestamp = datetime.now()
         return indexer_projects
     
     # Strategy 2: Nostr relays (optional)
@@ -42,6 +58,8 @@ async def get_angor_projects() -> List[Dict[str, Any]]:
             projects = await get_angor_projects_with_stats()
             if projects:
                 logging.info("✅ Returning projects from Nostr relays")
+                _angor_cache = projects
+                _cache_timestamp = datetime.now()
                 return projects
         except Exception as exc:
             logging.warning("Failed to fetch from Nostr relays: %s", exc)

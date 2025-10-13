@@ -62,10 +62,11 @@ def aggregate_projects(projects: List[Dict[str, Any]]) -> Dict[str, Any]:
         }
     
     # Calculate totals (amounts in satoshis)
-    total_target = sum(_sats(p.get("amount_target", 0)) for p in projects)
-    total_raised = sum(_sats(p.get("amount_raised", 0)) for p in projects)
+    # Handle both old format (amount_raised) and new format (raised_sats)
+    total_target = sum(_sats(p.get("goal_sats", 0) or p.get("amount_target", 0)) for p in projects)
+    total_raised = sum(_sats(p.get("raised_sats", 0) or p.get("amount_raised", 0)) for p in projects)
     total_spent = sum(_sats(p.get("amount_spent", 0)) for p in projects)
-    total_investors = sum(int(p.get("investor_count", 0) or 0) for p in projects)
+    total_investors = sum(int(p.get("backer_count", 0) or p.get("investor_count", 0) or 0) for p in projects)
     count = len(projects)
     
     # Convert satoshis to BTC for display
@@ -79,11 +80,11 @@ def aggregate_projects(projects: List[Dict[str, Any]]) -> Dict[str, Any]:
     # Daily totals grouped by project creation date (UTC)
     daily_totals_accumulator: defaultdict[str, int] = defaultdict(int)
     for project in projects:
-        created_at = _parse_datetime(project.get("created_at"))
+        created_at = _parse_datetime(project.get("started_at") or project.get("created_at"))
         if not created_at:
             continue
         day_key = created_at.date().isoformat()
-        daily_totals_accumulator[day_key] += _sats(project.get("amount_raised", 0))
+        daily_totals_accumulator[day_key] += _sats(project.get("raised_sats", 0) or project.get("amount_raised", 0))
     
     daily_totals = [
         {
@@ -97,16 +98,20 @@ def aggregate_projects(projects: List[Dict[str, Any]]) -> Dict[str, Any]:
     # Build project list with enhanced data
     project_list = []
     for p in projects:
-        amount_raised_sat = _sats(p.get("amount_raised", 0))
+        amount_raised_sat = _sats(p.get("raised_sats", 0) or p.get("amount_raised", 0))
         amount_raised_btc = _sat_to_btc(amount_raised_sat)
         amount_spent_sat = _sats(p.get("amount_spent", 0))
         amount_spent_btc = _sat_to_btc(amount_spent_sat)
-        investor_count = int(p.get("investor_count", 0) or 0)
-        amount_target_sat = _sats(p.get("amount_target", 0))
+        investor_count = int(p.get("backer_count", 0) or p.get("investor_count", 0) or 0)
+        amount_target_sat = _sats(p.get("goal_sats", 0) or p.get("amount_target", 0))
         
         project_list.append({
             "id": p.get("id"),
-            "title": p.get("title"),
+            "title": p.get("name") or p.get("title", "Unknown Project"),
+            "platform": p.get("platform", "unknown"),
+            "url": p.get("url", ""),
+            "creator_display": p.get("creator_display", ""),
+            "status": p.get("status", "unknown"),
             "amount_target": amount_target_sat,
             "amount_raised": amount_raised_sat,
             "amount_raised_btc": round(amount_raised_btc, 8),
@@ -114,16 +119,22 @@ def aggregate_projects(projects: List[Dict[str, Any]]) -> Dict[str, Any]:
             "amount_spent_btc": round(amount_spent_btc, 8),
             "investor_count": investor_count,
             "progress_percent": round(amount_raised_sat / amount_target_sat * 100, 2) if amount_target_sat > 0 else 0,
-            "created_at": p.get("created_at"),
-            "source": p.get("source"),
+            "created_at": p.get("started_at").isoformat() if isinstance(p.get("started_at"), datetime) else p.get("started_at") or p.get("created_at"),
+            "source": p.get("platform", p.get("source")),
             "founder_key": p.get("founder_key", ""),
             "project_identifier": p.get("project_identifier", ""),
             "nostr_event_id": p.get("nostr_event_id", "")
         })
     
-    # Sort for insights
-    top_funded = sorted(project_list, key=lambda x: x["amount_raised"], reverse=True)[:5]
-    most_investors = sorted(project_list, key=lambda x: x["investor_count"], reverse=True)[:5]
+    # Sort for insights - get top 20 for table display
+    top_funded = sorted(project_list, key=lambda x: x["amount_raised"], reverse=True)[:20]
+    most_investors = sorted(project_list, key=lambda x: x["investor_count"], reverse=True)[:20]
+    
+    # Calculate status distribution
+    status_counts = {}
+    for proj in projects:
+        status = proj.get("status", "unknown")
+        status_counts[status] = status_counts.get(status, 0) + 1
     
     return {
         "total_target": total_target,
@@ -142,5 +153,7 @@ def aggregate_projects(projects: List[Dict[str, Any]]) -> Dict[str, Any]:
         "projects": project_list,
         "top_funded": top_funded,
         "most_investors": most_investors,
-        "daily_totals": daily_totals
+        "daily_totals": daily_totals,
+        "status_counts": status_counts
     }
+

@@ -11,7 +11,8 @@ async def lifespan(app: FastAPI):
     # Startup
     print("⚡ CITADEL starting...")
     print("🏰 Bitcoin Crowdfunding Analytics Aggregator")
-    print("📊 Data Source: Angor Indexer (Public API)")
+    print("📊 Data Sources: Geyser Fund + Angor Protocol")
+    print("🌐 Fetching from multiple Bitcoin crowdfunding platforms...")
     yield
     # Shutdown
     print("👋 CITADEL shutting down...")
@@ -42,16 +43,13 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "citadel",
-        "data_source": "angor_indexer"
+        "data_sources": ["geyser", "angor"]
     }
 
 
 @app.get("/api/projects")
 async def api_projects():
-    """API endpoint for fetching all crowdfunding projects."""
-    from app.angor_adapter import get_angor_projects
-    projects = await get_angor_projects()
-    return {
-        "count": len(projects),
-        "projects": projects
-    }
+    """API endpoint for fetching all crowdfunding projects from multiple sources."""
+    from app.aggregator import fetch_all_projects
+    projects = await fetch_all_projects()
+    return projects

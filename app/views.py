@@ -4,7 +4,7 @@ import os
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from app.angor_adapter import get_angor_projects
+from app.aggregator import fetch_all_projects
 from app.analytics import aggregate_projects
 
 
@@ -19,22 +19,51 @@ templates = Jinja2Templates(directory=templates_path)
 async def dashboard(request: Request):
     """CITADEL Dashboard - Bitcoin Crowdfunding Analytics.
     
-    Shows ALL Angor crowdfunding projects from the Angor Indexer API.
-    No authentication, no API keys needed - fully public data!
+    Shows ALL Bitcoin crowdfunding projects from multiple sources:
+    - Geyser Fund (GraphQL API)
+    - Angor Protocol (Indexer API)
     """
-    projects = await get_angor_projects()
-    data_source = projects[0].get("source", "unknown") if projects else "unknown"
+    projects = await fetch_all_projects()
+    
+    # Calculate platform distribution
+    platform_counts = {}
+    platform_stats_dict = {}
+    
+    for proj in projects:
+        platform = proj.get("platform", "unknown")
+        platform_counts[platform] = platform_counts.get(platform, 0) + 1
+        
+        if platform not in platform_stats_dict:
+            platform_stats_dict[platform] = {
+                "name": platform,
+                "count": 0,
+                "total_raised_sats": 0,
+                "total_backers": 0
+            }
+        
+        platform_stats_dict[platform]["count"] += 1
+        platform_stats_dict[platform]["total_raised_sats"] += proj.get("raised_sats", 0)
+        platform_stats_dict[platform]["total_backers"] += proj.get("backer_count", 0)
+    
+    # Calculate averages
+    platform_stats = []
+    for platform, stats in platform_stats_dict.items():
+        stats["total_raised_btc"] = stats["total_raised_sats"] / 100_000_000
+        stats["avg_raised_btc"] = stats["total_raised_btc"] / stats["count"] if stats["count"] > 0 else 0
+        stats["avg_backers"] = int(stats["total_backers"] / stats["count"]) if stats["count"] > 0 else 0
+        platform_stats.append(stats)
     
     # Calculate analytics
     analytics = aggregate_projects(projects)
     
     return templates.TemplateResponse(
-        "index.html",
+        "index_analytics.html",
         {
             "request": request,
             "analytics": analytics,
             "projects": projects,
-            "data_source": data_source,
-            "is_demo": data_source == "demo"
+            "platform_counts": platform_counts,
+            "platform_stats": platform_stats,
+            "is_demo": False
         }
     )

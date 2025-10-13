@@ -1,0 +1,685 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-analytics">
+    <!-- Hero Stats Banner -->
+    <div class="hero-stats">
+        <div class="hero-card primary">
+            <div class="hero-icon">₿</div>
+            <div class="hero-content">
+                <h2>{{ "%.2f"|format(analytics.total_raised_btc) }} BTC</h2>
+                <p>Total Raised Across All Platforms</p>
+                <span class="hero-subvalue">${{ "{:,.0f}".format(analytics.total_raised_btc * 30000) }} USD</span>
+            </div>
+        </div>
+        
+        <div class="hero-card secondary">
+            <div class="hero-icon">📊</div>
+            <div class="hero-content">
+                <h2>{{ analytics.count }}</h2>
+                <p>Active Bitcoin Projects</p>
+                <span class="hero-subvalue">Across {{ platform_counts|length }} platforms</span>
+            </div>
+        </div>
+        
+        <div class="hero-card tertiary">
+            <div class="hero-icon">👥</div>
+            <div class="hero-content">
+                <h2>{{ "{:,}".format(analytics.total_investors) }}</h2>
+                <p>Total Backers</p>
+                <span class="hero-subvalue">Supporting Bitcoin projects</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-grid">
+        <!-- Platform Distribution Pie Chart -->
+        <div class="chart-card">
+            <h3>📊 Projects by Platform</h3>
+            <canvas id="platformChart" width="300" height="300"></canvas>
+            <div class="platform-legend">
+                {% for platform, count in platform_counts.items() %}
+                <div class="legend-item">
+                    <span class="legend-dot platform-{{ platform }}"></span>
+                    <span>{{ platform|capitalize }}: {{ count }} projects</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Funding Distribution Pie Chart -->
+        <div class="chart-card">
+            <h3>💰 Funding by Platform</h3>
+            <canvas id="fundingChart" width="300" height="300"></canvas>
+            <div id="fundingLegend" class="platform-legend"></div>
+        </div>
+        
+        <!-- Project Status Distribution -->
+        <div class="chart-card">
+            <h3>🎯 Project Status</h3>
+            <canvas id="statusChart" width="300" height="300"></canvas>
+            <div id="statusLegend" class="platform-legend"></div>
+        </div>
+        
+        <!-- Quick Stats Summary -->
+        <div class="chart-card chart-wide">
+            <h3>📊 Quick Statistics</h3>
+            <div class="quick-stats-grid">
+                <div class="stat-item">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-value">{{ "%.2f"|format(analytics.average_raised_btc) }}</div>
+                    <div class="stat-label">Avg Raised per Project</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value">{{ "{:,}".format((analytics.total_investors // analytics.count) if analytics.count > 0 else 0) }}</div>
+                    <div class="stat-label">Avg Backers per Project</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-value">{{ "%.1f"|format(analytics.funding_completion_rate) }}%</div>
+                    <div class="stat-label">Funding Completion Rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value">{{ "%.2f"|format(analytics.total_target_btc) }}</div>
+                    <div class="stat-label">Total Target Goal (BTC)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Platform Breakdown Cards -->
+    <div class="platform-breakdown">
+        <h2>🌐 Platform Insights</h2>
+        <div class="platform-cards">
+            {% for platform_data in platform_stats %}
+            <div class="platform-insight-card">
+                <div class="platform-header">
+                    <h3>{{ platform_data.name|capitalize }}</h3>
+                    <span class="platform-badge badge-{{ platform_data.name }}">{{ platform_data.count }} projects</span>
+                </div>
+                <div class="platform-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Total Raised</span>
+                        <span class="metric-value">{{ "%.4f"|format(platform_data.total_raised_btc) }} ₿</span>
+                        <span class="metric-sub">{{ "{:,}".format(platform_data.total_raised_sats) }} sats</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Avg per Project</span>
+                        <span class="metric-value">{{ "%.4f"|format(platform_data.avg_raised_btc) }} ₿</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Backers</span>
+                        <span class="metric-value">{{ "{:,}".format(platform_data.total_backers) }}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Avg Backers</span>
+                        <span class="metric-value">{{ platform_data.avg_backers }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Top Projects Section (Collapsible) -->
+    <div class="top-projects-section">
+        <h2>🏆 Top 20 Funded Projects</h2>
+        <div class="projects-table-container">
+            <table class="projects-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Project Name</th>
+                        <th>Platform</th>
+                        <th>Raised (BTC)</th>
+                        <th>Backers</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in analytics.top_funded[:20] %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td class="project-name">{{ project.title }}</td>
+                        <td><span class="platform-tag tag-{{ project.platform }}">{{ project.platform }}</span></td>
+                        <td class="amount">{{ "%.4f"|format(project.amount_raised_btc) }}</td>
+                        <td>{{ "{:,}".format(project.investor_count) }}</td>
+                        <td><span class="status-badge status-{{ project.status }}">{{ project.status }}</span></td>
+                        <td>
+                            {% if project.url %}
+                            <a href="{{ project.url }}" target="_blank" class="btn-view">View</a>
+                            {% else %}
+                            <button class="btn-details" onclick="showDetails('{{ project.id }}')">Details</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- All Projects (Lazy Load) -->
+    <div class="all-projects-section">
+        <h2>📋 All Projects</h2>
+        <div class="load-more-container">
+            <p>{{ analytics.count }} total projects available</p>
+            <button id="loadAllProjects" class="btn-primary" onclick="loadAllProjects()">
+                Load Full Project List
+            </button>
+        </div>
+        <div id="allProjectsList" class="projects-list hidden"></div>
+    </div>
+</div>
+
+<script>
+// Optimized: Only load summary data, not full project list
+const platformData = {{ platform_counts|tojson }};
+const platformStats = {{ platform_stats|tojson }};
+
+// Platform Distribution Pie Chart
+const platformCtx = document.getElementById('platformChart').getContext('2d');
+new Chart(platformCtx, {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(platformData).map(p => p.charAt(0).toUpperCase() + p.slice(1)),
+        datasets: [{
+            data: Object.values(platformData),
+            backgroundColor: ['#FF6B35', '#F7931A', '#00D9FF', '#4ECDC4', '#95E1D3'],
+            borderWidth: 2,
+            borderColor: '#1a1a2e'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        animation: {
+            duration: 500  // Faster animation
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+
+// Funding Distribution by Platform
+const fundingByPlatform = {};
+platformStats.forEach(p => {
+    fundingByPlatform[p.name] = p.total_raised_btc;
+});
+
+const fundingCtx = document.getElementById('fundingChart').getContext('2d');
+new Chart(fundingCtx, {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(fundingByPlatform).map(p => p.charAt(0).toUpperCase() + p.slice(1)),
+        datasets: [{
+            data: Object.values(fundingByPlatform),
+            backgroundColor: ['#FF6B35', '#F7931A', '#00D9FF', '#4ECDC4', '#95E1D3'],
+            borderWidth: 2,
+            borderColor: '#1a1a2e'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        animation: {
+            duration: 500
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' + context.parsed.toFixed(4) + ' BTC';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Funding legend
+const fundingLegend = document.getElementById('fundingLegend');
+Object.entries(fundingByPlatform).forEach(([platform, btc]) => {
+    fundingLegend.innerHTML += `
+        <div class="legend-item">
+            <span class="legend-dot platform-${platform}"></span>
+            <span>${platform.charAt(0).toUpperCase() + platform.slice(1)}: ${btc.toFixed(4)} BTC</span>
+        </div>
+    `;
+});
+
+// Project Status Distribution - calculated on backend
+const statusCounts = {{ analytics.status_counts|tojson|default('{}') }};
+
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+    type: 'pie',
+    data: {
+        labels: Object.keys(statusCounts).map(s => s.charAt(0).toUpperCase() + s.slice(1)),
+        datasets: [{
+            data: Object.values(statusCounts),
+            backgroundColor: ['#2ecc71', '#e74c3c', '#f39c12', '#95a5a6'],
+            borderWidth: 2,
+            borderColor: '#1a1a2e'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        animation: {
+            duration: 500
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+
+// Status legend
+const statusLegend = document.getElementById('statusLegend');
+Object.entries(statusCounts).forEach(([status, count]) => {
+    statusLegend.innerHTML += `
+        <div class="legend-item">
+            <span class="legend-dot status-${status}"></span>
+            <span>${status.charAt(0).toUpperCase() + status.slice(1)}: ${count} projects</span>
+        </div>
+    `;
+});
+
+// Load all projects on demand via AJAX
+function loadAllProjects() {
+    const container = document.getElementById('allProjectsList');
+    const button = document.getElementById('loadAllProjects');
+    
+    button.textContent = 'Loading...';
+    button.disabled = true;
+    
+    // Fetch via AJAX to avoid loading all data on page load
+    fetch('/api/projects')
+        .then(response => response.json())
+        .then(projects => {
+            let html = '<div class="projects-grid">';
+            projects.forEach(project => {
+                html += `
+                    <div class="project-card-compact">
+                        <h4>${project.name || project.title || 'Unknown Project'}</h4>
+                        <div class="project-quick-stats">
+                            <span class="platform-tag tag-${project.platform}">${project.platform}</span>
+                            <span class="raised">${((project.raised_sats || 0) / 100000000).toFixed(4)} BTC</span>
+                            <span class="backers">${project.backer_count || 0} backers</span>
+                        </div>
+                        ${project.url ? `<a href="${project.url}" target="_blank" class="btn-view-small">View</a>` : ''}
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            container.innerHTML = html;
+            container.classList.remove('hidden');
+            button.style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Error loading projects:', error);
+            button.textContent = 'Error - Try Again';
+            button.disabled = false;
+        });
+}
+</script>
+
+<style>
+/* Performance optimizations */
+* {
+    box-sizing: border-box;
+}
+
+.dashboard-analytics {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    will-change: scroll-position;
+}
+
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.hero-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateZ(0); /* GPU acceleration */
+    backface-visibility: hidden;
+}
+
+.hero-icon {
+    font-size: 3rem;
+    opacity: 0.9;
+}
+
+.hero-content h2 {
+    margin: 0;
+    font-size: 2.5rem;
+    color: #F7931A;
+}
+
+.hero-content p {
+    margin: 0.5rem 0 0 0;
+    color: #ccc;
+    font-size: 1.1rem;
+}
+
+.hero-subvalue {
+    display: block;
+    margin-top: 0.5rem;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.chart-card {
+    background: #0f3460;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transform: translateZ(0); /* GPU acceleration */
+    will-change: transform;
+}
+
+.chart-card.chart-wide {
+    grid-column: span 2;
+}
+
+.chart-card h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #F7931A;
+}
+
+/* Quick Stats Grid */
+.quick-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    padding: 0.5rem 0;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(247, 147, 26, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(247, 147, 26, 0.2);
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    background: rgba(247, 147, 26, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(247, 147, 26, 0.2);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #F7931A;
+    margin-bottom: 0.3rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #95a5a6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 768px) {
+    .quick-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+/* Optimize canvas rendering */
+canvas {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.platform-legend {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.legend-dot.platform-geyser { background: #FF6B35; }
+.legend-dot.platform-angor { background: #F7931A; }
+.legend-dot.platform-nostr { background: #00D9FF; }
+.legend-dot.status-active { background: #2ecc71; }
+.legend-dot.status-completed { background: #3498db; }
+.legend-dot.status-failed { background: #e74c3c; }
+
+.platform-breakdown {
+    margin-bottom: 3rem;
+}
+
+.platform-breakdown h2 {
+    margin-bottom: 1.5rem;
+    color: #F7931A;
+}
+
+.platform-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.platform-insight-card {
+    background: #16213e;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(247, 147, 26, 0.3);
+}
+
+.platform-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.platform-header h3 {
+    margin: 0;
+    color: #F7931A;
+}
+
+.platform-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.badge-geyser { background: rgba(255, 107, 53, 0.2); color: #FF6B35; }
+.badge-angor { background: rgba(247, 147, 26, 0.2); color: #F7931A; }
+
+.platform-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 0.25rem;
+}
+
+.metric-value {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #F7931A;
+}
+
+.metric-sub {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+.projects-table-container {
+    overflow-x: auto;
+    background: #16213e;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.projects-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.projects-table th {
+    background: #0f3460;
+    padding: 1rem;
+    text-align: left;
+    color: #F7931A;
+    font-weight: bold;
+}
+
+.projects-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.projects-table tr:hover {
+    background: rgba(247, 147, 26, 0.05);
+}
+
+.project-name {
+    font-weight: 500;
+    color: #fff;
+}
+
+.platform-tag {
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.tag-geyser { background: rgba(255, 107, 53, 0.2); color: #FF6B35; }
+.tag-angor { background: rgba(247, 147, 26, 0.2); color: #F7931A; }
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.status-active { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+.status-completed { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+.status-failed { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+
+.btn-view, .btn-details {
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-view {
+    background: #F7931A;
+    color: #000;
+    font-weight: bold;
+}
+
+.btn-details {
+    background: #0f3460;
+    color: #F7931A;
+    border: 1px solid #F7931A;
+}
+
+.load-more-container {
+    text-align: center;
+    padding: 2rem;
+    background: #16213e;
+    border-radius: 12px;
+    margin-top: 2rem;
+}
+
+.btn-primary {
+    background: #F7931A;
+    color: #000;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background: #FF6B35;
+    transform: translateY(-2px);
+}
+
+.hidden {
+    display: none;
+}
+
+.amount {
+    font-weight: bold;
+    color: #F7931A;
+}
+</style>
+{% endblock %}
