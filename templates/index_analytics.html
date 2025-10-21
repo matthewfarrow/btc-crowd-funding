@@ -1,36 +1,34 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="dashboard-analytics">
-    <!-- Hero Stats Banner -->
-    <div class="hero-stats">
-        <div class="hero-card primary">
-            <div class="hero-icon">₿</div>
-            <div class="hero-content">
-                <h2>{{ "%.2f"|format(analytics.total_raised_btc) }} BTC</h2>
-                <p>Total Raised Across All Platforms</p>
-                <span class="hero-subvalue">${{ "{:,.0f}".format(analytics.total_raised_btc * 30000) }} USD</span>
+<header>
+    <div class="container">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>CITADEL</h1>
+                <p class="header-subtitle">Bitcoin Crowdfunding Analytics Platform</p>
             </div>
-        </div>
-        
-        <div class="hero-card secondary">
-            <div class="hero-icon">📊</div>
-            <div class="hero-content">
-                <h2>{{ analytics.count }}</h2>
-                <p>Active Bitcoin Projects</p>
-                <span class="hero-subvalue">Across {{ platform_counts|length }} platforms</span>
-            </div>
-        </div>
-        
-        <div class="hero-card tertiary">
-            <div class="hero-icon">👥</div>
-            <div class="hero-content">
-                <h2>{{ "{:,}".format(analytics.total_investors) }}</h2>
-                <p>Total Backers</p>
-                <span class="hero-subvalue">Supporting Bitcoin projects</span>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <div class="stat-value">{{ "%.2f"|format(analytics.total_raised_btc) }}</div>
+                    <div class="stat-label">BTC Raised</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ analytics.count }}</div>
+                    <div class="stat-label">Active Projects</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ "{:,}".format(analytics.total_investors) }}</div>
+                    <div class="stat-label">Total Backers</div>
+                </div>
             </div>
         </div>
     </div>
+</header>
+
+<main>
+    <div class="container">
+        <div class="dashboard-analytics">
 
     <!-- Charts Section -->
     <div class="charts-grid">
