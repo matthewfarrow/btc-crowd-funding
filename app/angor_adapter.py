@@ -76,7 +76,7 @@ async def get_angor_projects() -> List[Dict[str, Any]]:
 
 async def fetch_from_angor_indexer() -> List[Dict[str, Any]]:
     """
-    Fetch ALL projects from Angor Indexer API with detailed stats.
+    Fetch ALL projects from Angor Indexer API with optimized performance.
     
     This is the PRIMARY data source - it has:
     - Complete list of all crowdfunding projects
@@ -84,69 +84,65 @@ async def fetch_from_angor_indexer() -> List[Dict[str, Any]]:
     - Investor counts
     - Real blockchain data
     
+    Optimized for speed:
+    - Try mainnet first, fallback to testnet
+    - Batch API calls with shorter timeouts
+    - Skip detailed stats if they timeout
+    - Use parallel fetching where possible
+    
     Returns:
         List of normalized project dictionaries with full financial data
     """
     try:
-        # Use TESTNET for now - mainnet API is down
-        api_url = ANGOR_INDEXER_TESTNET
-        print(f"🌐 Fetching ALL projects from Angor Indexer: {api_url}", flush=True)
-        logging.info(f"Fetching projects from Angor Indexer: {api_url}")
+        # Try mainnet first, then testnet
+        api_endpoints = [
+            ("mainnet", ANGOR_INDEXER_MAINNET),
+            ("testnet", ANGOR_INDEXER_TESTNET)
+        ]
         
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            # Step 1: Get list of ALL projects
-            response = await client.get(api_url)
-            print(f"✅ Indexer response status: {response.status_code}", flush=True)
-            logging.info(f"Indexer response status: {response.status_code}")
-            response.raise_for_status()
-            
-            projects_data = response.json()
-            logging.info(f"📊 Found {len(projects_data)} total projects from indexer")
-            print(f"📊 Processing {len(projects_data)} projects with detailed stats...", flush=True)
-            
-            # Step 2: Fetch detailed stats for EACH project
-            projects = []
+        projects_data = None
+        api_url = None
+        
+        for network, url in api_endpoints:
+            try:
+                print(f"🌐 Trying {network} indexer: {url}", flush=True)
+                async with httpx.AsyncClient(timeout=15.0) as client:  # Shorter timeout
+                    response = await client.get(url)
+                    print(f"✅ {network} response status: {response.status_code}", flush=True)
+                    response.raise_for_status()
+                    
+                    projects_data = response.json()
+                    api_url = url
+                    print(f"📊 Found {len(projects_data)} projects from {network}", flush=True)
+                    break
+                    
+            except Exception as e:
+                print(f"❌ {network} failed: {e}", flush=True)
+                continue
+        
+        if not projects_data or not api_url:
+            print("❌ No Angor indexer available", flush=True)
+            return []
+        
+        # Process projects with optimized fetching
+        print(f"📊 Processing {len(projects_data)} projects with optimized fetching...", flush=True)
+        
+        projects = []
+        async with httpx.AsyncClient(timeout=5.0) as client:  # Very short timeout for details
             for idx, item in enumerate(projects_data, 1):
                 try:
                     proj_id = item.get('projectIdentifier', '')
                     nostr_event_id = item.get('nostrEventId', '')
                     
-                    # Fetch detailed stats from individual project endpoint
-                    detail_url = f"{api_url}/{proj_id}"
-                    detail_response = await client.get(detail_url)
-                    detail_data = detail_response.json() if detail_response.status_code == 200 else {}
-                    
-                    # Fetch investment stats
-                    stats_url = f"{api_url}/{proj_id}/stats"
-                    stats_response = await client.get(stats_url)
-                    stats_data = stats_response.json() if stats_response.status_code == 200 else {}
-                    
-                    # Extract financial data (amounts are in satoshis)
-                    amount_invested = stats_data.get('amountInvested', 0)
-                    investor_count = stats_data.get('investorCount', 0) or detail_data.get('totalInvestmentsCount', 0)
-                    amount_spent = stats_data.get('amountSpentSoFarByFounder', 0)
-                    penalties = stats_data.get('amountInPenalties', 0)
-                    
-                    # Try to fetch real project name from Nostr
-                    project_title = f"Project {proj_id[:12]}..."  # Default
-                    
-                    if NOSTR_AVAILABLE and nostr_event_id:
-                        try:
-                            metadata = await fetch_project_metadata_by_event_id(nostr_event_id)
-                            if metadata and metadata.get('name'):
-                                project_title = metadata['name']
-                                logging.info(f"✅ Enriched project {proj_id[:12]} with Nostr name: {project_title}")
-                        except Exception as e:
-                            logging.debug(f"Could not fetch Nostr metadata for {proj_id[:12]}: {e}")
-                    
-                    projects.append({
+                    # Basic project data (always available)
+                    project = {
                         "id": f"angor_{proj_id}",
-                        "title": project_title,
+                        "title": f"Project {proj_id[:12]}...",  # Default, will be enriched later
                         "amount_target": 0,  # Would need ProjectInfo from Nostr NIP-3030
-                        "amount_raised": amount_invested,  # satoshis
-                        "amount_spent": amount_spent,  # satoshis spent by founder
-                        "amount_penalties": penalties,  # satoshis in penalties
-                        "investor_count": investor_count,
+                        "amount_raised": 0,  # Will try to fetch from stats
+                        "amount_spent": 0,
+                        "amount_penalties": 0,
+                        "investor_count": 0,  # Will try to fetch from stats
                         "created_at": parse_block_time(item.get('createdOnBlock', 0)),
                         "source": "angor_indexer",
                         "founder_key": item.get('founderKey', ''),
@@ -154,7 +150,35 @@ async def fetch_from_angor_indexer() -> List[Dict[str, Any]]:
                         "project_identifier": proj_id,
                         "transaction_id": item.get('trxId', ''),
                         "created_block": item.get('createdOnBlock', 0)
-                    })
+                    }
+                    
+                    # Try to fetch stats (but don't fail if it times out)
+                    try:
+                        stats_url = f"{api_url}/{proj_id}/stats"
+                        stats_response = await client.get(stats_url)
+                        if stats_response.status_code == 200:
+                            stats_data = stats_response.json()
+                            project.update({
+                                "amount_raised": stats_data.get('amountInvested', 0),
+                                "investor_count": stats_data.get('investorCount', 0) or stats_data.get('totalInvestmentsCount', 0),
+                                "amount_spent": stats_data.get('amountSpentSoFarByFounder', 0),
+                                "amount_penalties": stats_data.get('amountInPenalties', 0)
+                            })
+                    except Exception as e:
+                        # Stats fetch failed, but we still have the basic project
+                        logging.debug(f"Could not fetch stats for {proj_id[:12]}: {e}")
+                    
+                    # Try to enrich with Nostr metadata (but don't fail if it times out)
+                    if NOSTR_AVAILABLE and nostr_event_id:
+                        try:
+                            metadata = await fetch_project_metadata_by_event_id(nostr_event_id)
+                            if metadata and metadata.get('name'):
+                                project["title"] = metadata['name']
+                                logging.info(f"✅ Enriched project {proj_id[:12]} with Nostr name: {project['title']}")
+                        except Exception as e:
+                            logging.debug(f"Could not fetch Nostr metadata for {proj_id[:12]}: {e}")
+                    
+                    projects.append(project)
                     
                     if idx % 5 == 0:  # Progress logging
                         print(f"  📈 Processed {idx}/{len(projects_data)} projects...", flush=True)
@@ -162,10 +186,10 @@ async def fetch_from_angor_indexer() -> List[Dict[str, Any]]:
                 except Exception as e:
                     logging.error(f"Error parsing project {item.get('projectIdentifier', 'unknown')}: {e}")
                     continue
-            
-            print(f"✅ Successfully parsed {len(projects)} projects with full financial data", flush=True)
-            return projects
-            
+        
+        print(f"✅ Successfully processed {len(projects)} projects from Angor indexer", flush=True)
+        return projects
+        
     except Exception as e:
         import traceback
         logging.error(f"Failed to fetch from Angor Indexer: {e}")

@@ -4,7 +4,7 @@ import asyncio
 import json
 from datetime import datetime
 from typing import List, Dict, Any
-from nostr_sdk import Client, Filter, Kind, init_logger, LogLevel, Keys, EventBuilder, PublicKey
+from nostr_sdk import Client, Filter, Kind, init_logger, LogLevel, Keys, EventBuilder, PublicKey, RelayUrl, Timestamp, EventId
 import logging
 
 logger = logging.getLogger(__name__)
@@ -38,25 +38,23 @@ async def fetch_angor_projects_from_nostr() -> List[Dict[str, Any]]:
         # Initialize Nostr client
         client = Client()
         
-        # Add Angor relays
-        for relay in ANGOR_RELAYS:
+        # Add Angor relays with proper RelayUrl objects
+        for relay_url in ANGOR_RELAYS:
             try:
+                relay = RelayUrl(relay_url)
                 await client.add_relay(relay)
-                logger.info(f"Connected to relay: {relay}")
+                logger.info(f"Connected to relay: {relay_url}")
             except Exception as e:
-                logger.warning(f"Failed to connect to {relay}: {e}")
+                logger.warning(f"Failed to connect to {relay_url}: {e}")
         
         # Connect to relays
         await client.connect()
         
         # Create filter for Angor projects (Kind 3030)
         # Looking for events from the last year
-        since_timestamp = int((datetime.now().timestamp() - (365 * 24 * 60 * 60)))
+        since_timestamp = Timestamp.from_secs(int((datetime.now().timestamp() - (365 * 24 * 60 * 60))))
         
         project_filter = Filter().kind(Kind(ANGOR_PROJECT_KIND)).since(since_timestamp)
-        
-        # Also look for metadata (Kind 0) to get project names/descriptions
-        metadata_filter = Filter().kind(Kind(0)).since(since_timestamp)
         
         # Subscribe and fetch events
         logger.info("Fetching Angor projects from Nostr relays...")
@@ -189,12 +187,13 @@ async def fetch_project_metadata_by_event_id(event_id: str) -> Dict[str, Any] | 
         # Initialize Nostr client
         client = Client()
         
-        # Add Angor relays
-        for relay in ANGOR_RELAYS:
+        # Add Angor relays with proper RelayUrl objects
+        for relay_url in ANGOR_RELAYS:
             try:
+                relay = RelayUrl(relay_url)
                 await client.add_relay(relay)
             except Exception as e:
-                logger.debug(f"Failed to add relay {relay}: {e}")
+                logger.debug(f"Failed to add relay {relay_url}: {e}")
         
         # Connect to relays
         await client.connect()
